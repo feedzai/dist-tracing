@@ -1,0 +1,55 @@
+image: docker.feedzai.com/gitlab-ci/maven:1.0.0
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml -gs .gitlab-ci/maven/settings.xml -Djgitver.config=.gitlab-ci/maven/jgitver.config.xml --batch-mode"
+
+stages:
+  - build
+
+#
+# official branches
+# * build artifacts and deploy to nexus
+# * build documentation and deploy to http server
+build:
+  stage: build
+  script:
+    - source .gitlab-ci/sh/setup-gitbook-ssh.sh
+    - mvn $MAVEN_CLI_OPTS clean deploy -Pdocs
+  only:
+    - develop
+    - master
+    - /^hf[_-].*$/
+    - /^up[_-].*$/
+    - tags
+
+#
+# experimental branches
+# * build artifacts and deploy to nexus
+# * DO NOT build documentation and DO NOT deploy to http server
+# * allow snapshot versions
+experimental:
+  stage: build
+  script:
+    - sh .gitlab-ci/sh/setup-local-branch.sh
+    - mvn $MAVEN_CLI_OPTS clean deploy -Denforcer.fail=false
+  only:
+    - /^xp[_-].*$/
+
+#
+# private branches
+# * build artifacts but DO NOT deploy to nexus
+# * DO NOT build documentation and DO NOT deploy to http server
+test:
+  stage: build
+  script:
+    - sh .gitlab-ci/sh/setup-local-branch.sh
+    - mvn $MAVEN_CLI_OPTS clean install -Pdocs
+  except:
+    - develop
+    - master
+    - /^xp[_-].*$/
+    - /^hf[_-].*$/
+    - /^up[_-].*$/
+    - tags
+

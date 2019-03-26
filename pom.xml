@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.feedzai.commons.tracing</groupId>
+    <artifactId>tracing</artifactId>
+    <version>0.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- dependencies -->
+        <maven-tiles.version>3.7.0</maven-tiles.version>
+
+        <!-- Maven plugins. -->
+        <maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
+        <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
+        <tiles-maven-plugin.version>2.10</tiles-maven-plugin.version>
+        <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
+    </properties>
+
+    <modules>
+        <module>site</module>
+    <module>sample</module>
+  </modules>
+
+    <scm>
+        <url>https://gitlab.feedzai.com/commons/tracing</url>
+    </scm>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <extensions>true</extensions>
+                    <groupId>io.repaint.maven</groupId>
+                    <artifactId>tiles-maven-plugin</artifactId>
+                    <version>${tiles-maven-plugin.version}</version>
+                    <configuration>
+                        <tiles>
+                            <tile>com.feedzai.commons.maven-tiles:maven-tiles-facets-internal:${maven-tiles.version}
+                            </tile>
+                        </tiles>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>io.repaint.maven</groupId>
+                <artifactId>tiles-maven-plugin</artifactId>
+                <inherited>false</inherited>
+                <configuration>
+                    <tiles>
+                        <tile>com.feedzai.commons.maven-tiles:maven-tiles-facets-root:${maven-tiles.version}</tile>
+                    </tiles>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <id>commons-releases</id>
+            <url>https://maven.feedzai.com/content/repositories/commons-releases/</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>commons-snapshots</id>
+            <url>https://maven.feedzai.com/content/repositories/commons-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

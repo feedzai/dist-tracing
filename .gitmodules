@@ -1,0 +1,4 @@
+[submodule ".gitlab-ci"]
+	path = .gitlab-ci
+	url = ../gitlab-ci_setup
+	branch = master

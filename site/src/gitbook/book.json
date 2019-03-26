@@ -1,0 +1,21 @@
+{
+  "plugins" : [
+    "anchors@0.7.1",
+    "back-to-top-button@0.1.4",
+    "hints@1.0.2",
+    "search-plus@1.0.3",
+    "include-highlight@0.2.1",
+    "collapsible-menu@1.0.3",
+    "sidebar-footer@git+https://gitlab%2Bdeploy-token-4:_xGJUSab5NTAo6Hbebks@gitlab.feedzai.com/commons/gitbook-plugin-sidebar-footer.git#v1.0.1",
+    "feedzai-css@git+https://gitlab%2Bdeploy-token-5:LvHUJss_XEWjZtR3ou4R@gitlab.feedzai.com/commons/gitbook-plugin-feedzai-css.git#v1.0.0",
+    "versions@2.1.4",
+    "-lunr",
+    "-search",
+    "-sharing"
+  ],
+  "pluginsConfig": {
+    "versions": {
+      "gitbookConfigURL": "versions.json"
+    }
+  }
+}
