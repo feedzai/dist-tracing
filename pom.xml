@@ -21,8 +21,8 @@
 
     <modules>
         <module>site</module>
-    <module>sample</module>
-  </modules>
+        <module>tracing-api</module>
+    </modules>
 
     <scm>
         <url>https://gitlab.feedzai.com/commons/tracing</url>
