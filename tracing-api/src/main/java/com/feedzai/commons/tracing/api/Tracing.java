@@ -1,7 +1,6 @@
 package com.feedzai.commons.tracing.api;
 
 
-import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -108,18 +107,18 @@ public interface Tracing {
      *
      * <p>Useful when the request's execution spans multiple components/nodes that belong to the same trace.
      *
-     * <p>Similar to {@link Tracing#addToTrace(Runnable, String, Serializable)} and
-     * {@link Tracing#addToTraceAsync(Supplier, String, Serializable)} but returning any value.
+     * <p>Similar to {@link Tracing#addToTrace(Runnable, String, TraceContext)} and
+     * {@link Tracing#addToTraceAsync(Supplier, String, TraceContext)} but returning any value.
      *
      * @param toTrace           Lambda containing the code that should be wrapped in a trace.
      * @param description       The description or name that best describes this operation.
-     * @param serializedContext Represents the context of the current execution. Receiving this context as Serializable,
+     * @param serializedContext Represents the context of the current execution. Receiving this context as TraceContext,
      *                          as opposed to a tracing specific object decouples this API from any lower level tracing
      *                          API constructs (i.e., OpenTracing's Span or SpanContext).
      * @param <R>               The Return type of the traced code.
      * @return Returns whatever the traced code would have returned.
      */
-    <R> R addToTrace(Supplier<R> toTrace, String description, Serializable serializedContext);
+    <R> R addToTrace(Supplier<R> toTrace, String description, TraceContext serializedContext);
 
     /**
      * Traces operations that do not return any values. This method will add a Span to an existing trace which will
@@ -157,16 +156,16 @@ public interface Tracing {
      *
      * <p>Useful when the request's execution spans multiple components/nodes that belong to the same trace.
      *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, Serializable)} and
-     * {@link Tracing#addToTraceAsync(Supplier, String, Serializable)} but without returning any object.
+     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, TraceContext)} and
+     * {@link Tracing#addToTraceAsync(Supplier, String, TraceContext)} but without returning any object.
      *
      * @param toTrace           Lambda containing the code that should be wrapped in a trace.
      * @param description       The description or name that best describes this operation.
-     * @param serializedContext Represents the context of the current execution. Receiving this context as Serializable,
+     * @param serializedContext Represents the context of the current execution. Receiving this context as TraceContext,
      *                          as opposed to a tracing specific object decouples this API from any lower level tracing
      *                          API constructs (i.e., OpenTracing's Span or SpanContext).
      */
-    void addToTrace(Runnable toTrace, String description, Serializable serializedContext);
+    void addToTrace(Runnable toTrace, String description, TraceContext serializedContext);
 
 
     /**
@@ -202,7 +201,8 @@ public interface Tracing {
      * @param <R>             The Return type of the traced code.
      * @return Returns the {@link CompletableFuture} the traced code would have returned.
      */
-    <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description, String fromTraceWideId);
+    <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
+                                             String fromTraceWideId);
 
     /**
      * Traces operations that are performed in the background and return a {@link CompletableFuture}, where tracing the
@@ -211,19 +211,19 @@ public interface Tracing {
      *
      * <p>Useful when the request's execution spans multiple components/nodes that belong to the same trace.
      *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, Serializable)} and
-     * {@link Tracing#addToTrace(Runnable, String, Serializable)} but returning a {@link CompletableFuture}
+     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, TraceContext)} and
+     * {@link Tracing#addToTrace(Runnable, String, TraceContext)} but returning a {@link CompletableFuture}
      *
      * @param toTraceAsync      Lambda containing the code that should be wrapped in a trace.
      * @param description       The description or name that best describes this operation.
      * @param serializedContext Represents the context of the current execution.  Receiving this context as
-     *                          Serializable, as opposed to a tracing specific object decouples this API from any lower
+     *                          TraceContext, as opposed to a tracing specific object decouples this API from any lower
      *                          level tracing API constructs (i.e., OpenTracing's Span or SpanContext).
      * @param <R>               The Return type of the traced code.
      * @return Returns the {@link CompletableFuture} the traced code would have returned.
      */
-    <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description, Serializable serializedContext);
-
+    <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
+                                             TraceContext serializedContext);
 
 
     /**
@@ -266,20 +266,20 @@ public interface Tracing {
      * not trace the full execution. This method will add a Span to an existing trace which will become a child of the
      * currently active trace context.
      *
-     * <p>Useful when the request's execution spans multiple components/nodes that belong to the same trace.
+     * <p>Useful when the request's execution spans multiple components/nodes/threads that belong to the same trace.
      *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, Serializable)},
-     * {@link Tracing#addToTrace(Runnable, String, Serializable)} and {@link Tracing#addToTraceAsync(Supplier, String,
-     * Serializable)} but returning a {@link Promise}
+     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, TraceContext)},
+     * {@link Tracing#addToTrace(Runnable, String, TraceContext)} and {@link Tracing#addToTraceAsync(Supplier, String,
+     * TraceContext)} but returning a {@link Promise}
      *
-     * @param toTraceAsync      Lambda containing the code that should be wrapped in a trace.
-     * @param description       The description or name that best describes this operation.
-     * @param serializedContext Represents the context of the current execution.  Receiving this context as
-     *                          Serializable, as opposed to a tracing specific object decouples this API from any lower
-     *                          level tracing API constructs (i.e., OpenTracing's Span or SpanContext).
+     * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
+     * @param description  The description or name that best describes this operation.
+     * @param context      Represents the context of the current execution.  Receiving this context as TraceContext, as
+     *                     opposed to a tracing specific object decouples this API from any lower level tracing API
+     *                     constructs (i.e., OpenTracing's Span or SpanContext).
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, Serializable serializedContext);
+    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, TraceContext context);
 
 
 }
