@@ -2,7 +2,8 @@ package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.api.Tracing;
+import com.feedzai.commons.tracing.api.TracingWithContext;
+import com.feedzai.commons.tracing.api.TracingWithId;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -12,7 +13,6 @@ import io.opentracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -20,13 +20,12 @@ import java.util.function.Supplier;
 
 
 /**
- * Base implementation of the tracing functionality. This implementation relies on the OpenTracing API @see <a
- * href="https://opentracing.io/">https://opentracing.io/</a> in order to remain independent from the underlying tracing
- * engine.
+ * Base implementation of the tracing functionality with eventID. his implementation relies on the OpenTracing API in
+ * order to remain independent from the underlying tracing engine.
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public abstract class AbstractTracingEngine implements Tracing {
+public abstract class AbstractTracingEngine implements TracingWithContext, TracingWithId {
 
     /**
      * The Tracer object that will be used by the library. This is an OpenTracing API class so it does not make any
@@ -37,18 +36,12 @@ public abstract class AbstractTracingEngine implements Tracing {
     /**
      * Maps a traceID to the span that currently represents its point in the execution.
      */
-    private final Cache<String, Span> spanIdMappings;
-
-
-    /**
-     * Maps an application specific ID that identifies a trace to the TraceId.
-     */
-    private final Cache<String, String> traceIdMappings;
+    final Cache<String, Span> spanIdMappings;
 
     /**
      * The logger.
      */
-    protected static final Logger logger = LoggerFactory.getLogger(AbstractTracingEngine.class.getName());
+    static final Logger logger = LoggerFactory.getLogger(AbstractTracingEngine.class.getName());
 
     /**
      * Constructor for this abstract class to be called by the extension classes to supply the implementation specific
@@ -57,14 +50,12 @@ public abstract class AbstractTracingEngine implements Tracing {
      * @param tracer        The Tracer implementation of the underlying tracing Engine.
      * @param configuration The configuration parameters for the caches.
      */
-    protected AbstractTracingEngine(final Tracer tracer, final CacheConfiguration configuration) {
+    AbstractTracingEngine(final Tracer tracer, final CacheConfiguration configuration) {
         this.tracer = tracer;
         this.spanIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().getNano(), TimeUnit.NANOSECONDS)
                 .maximumSize(configuration.getMaximumSize()).build();
-        this.traceIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().getNano(), TimeUnit.NANOSECONDS)
-                .maximumSize(configuration.getMaximumSize()).build();
-    }
 
+    }
 
     @Override
     public <R> R newTrace(final Supplier<R> toTrace, final String description) {
@@ -74,11 +65,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         return result;
     }
 
-    @Override
-    public <R> R newTrace(final Supplier<R> toTrace, final String description, final String eventId) {
-        final Span span = newTraceWithId(description, eventId);
-        return traceSafelyAndReturn(toTrace, span);
-    }
 
     @Override
     public void newTrace(final Runnable toTrace, final String description) {
@@ -86,11 +72,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         traceSafely(toTrace, span);
     }
 
-    @Override
-    public void newTrace(final Runnable toTrace, final String description, final String eventId) {
-        final Span span = newTraceWithId(description, eventId);
-        traceSafely(toTrace, span);
-    }
 
     @Override
     public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync,
@@ -99,12 +80,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         return finishFutureSpan(toTraceAsync.get(), span);
     }
 
-    @Override
-    public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync,
-                                                  final String description, final String eventId) {
-        final Span span = newTraceWithId(description, eventId);
-        return finishFutureSpan(toTraceAsync.get(), span);
-    }
 
     @Override
     public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
@@ -112,12 +87,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         return finishPromiseSpan(toTraceAsync.get(), span);
     }
 
-    @Override
-    public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description,
-                                   final String eventId) {
-        final Span span = newTraceWithId(description, eventId);
-        return finishPromiseSpan(toTraceAsync.get(), span);
-    }
 
     @Override
     public <R> R addToTrace(final Supplier<R> toTrace, final String description) {
@@ -125,11 +94,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         return traceSafelyAndReturn(toTrace, span);
     }
 
-    @Override
-    public <R> R addToTrace(final Supplier<R> toTrace, final String description, final String eventId) {
-        final Span span = buildContextFromId(description, eventId);
-        return traceSafelyAndReturn(toTrace, span);
-    }
 
     @Override
     public <R> R addToTrace(final Supplier<R> toTrace, final String description, final TraceContext context) {
@@ -143,11 +107,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         traceSafely(toTrace, span);
     }
 
-    @Override
-    public void addToTrace(final Runnable toTrace, final String description, final String eventId) {
-        final Span span = buildContextFromId(description, eventId);
-        traceSafely(toTrace, span);
-    }
 
     @Override
     public void addToTrace(final Runnable toTrace, final String description, final TraceContext context) {
@@ -159,13 +118,6 @@ public abstract class AbstractTracingEngine implements Tracing {
     public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync,
                                                     final String description) {
         final Span span = buildActiveSpan(description);
-        return finishFutureSpan(toTraceAsync.get(), span);
-    }
-
-    @Override
-    public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync,
-                                                    final String description, final String eventId) {
-        final Span span = buildContextFromId(description, eventId);
         return finishFutureSpan(toTraceAsync.get(), span);
     }
 
@@ -183,44 +135,12 @@ public abstract class AbstractTracingEngine implements Tracing {
         return finishPromiseSpan(toTraceAsync.get(), span);
     }
 
-    @Override
-    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description,
-                                     final String eventId) {
-        final Span span = buildContextFromId(description, eventId);
-        return finishPromiseSpan(toTraceAsync.get(), span);
-    }
-
 
     @Override
     public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description,
                                      final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
         return finishPromiseSpan(toTraceAsync.get(), span);
-    }
-
-    /**
-     * Updates the mapping between the application specific ID and the TraceID. If no mapping is found this method will
-     * create a new mapping.
-     *
-     * @param eventId the application specific ID.
-     * @param span    the span associated to the traceID.
-     */
-    private void updateIdMappings(final String eventId, final Span span) {
-        this.traceIdMappings.put(eventId, getTraceIdFromSpan(span));
-    }
-
-    /**
-     * Gets the trace ID associated to an application specific ID.
-     *
-     * @param eventId The application specific ID.
-     * @return An Optional containing the value of the trace ID if it is present in the cache.
-     */
-    private Optional<String> getTraceIdForAppSpecificId(final String eventId) {
-        final String traceId = this.traceIdMappings.getIfPresent(eventId);
-        if (traceId == null) {
-            logger.warn("No trace ID was found for application specific ID {}", eventId);
-        }
-        return Optional.ofNullable(traceId);
     }
 
 
@@ -234,7 +154,7 @@ public abstract class AbstractTracingEngine implements Tracing {
      * @param <R>          The return type of the {@link CompletableFuture}
      * @return the same {@link CompletableFuture} that was passed in {@code toTraceAsync}
      */
-    private <R> CompletableFuture<R> finishFutureSpan(final CompletableFuture<R> toTraceAsync, final Span span) {
+    <R> CompletableFuture<R> finishFutureSpan(final CompletableFuture<R> toTraceAsync, final Span span) {
         return toTraceAsync.handle((future, exception) -> {
             span.log(exception.getMessage());
             span.finish();
@@ -251,7 +171,7 @@ public abstract class AbstractTracingEngine implements Tracing {
      * @param span         The span that is wrapping the execution and should be finished.
      * @return the same {@link Promise} that was passed in {@code toTraceAsync}
      */
-    private Promise finishPromiseSpan(final Promise toTraceAsync, final Span span) {
+    Promise finishPromiseSpan(final Promise toTraceAsync, final Span span) {
         final Function<Promise, Promise> onFinish = promise -> {
             span.finish();
             return promise;
@@ -270,7 +190,7 @@ public abstract class AbstractTracingEngine implements Tracing {
      * @param <R>     The return type of the executed method.
      * @return The object that is returned by the executed method.
      */
-    private <R> R traceSafelyAndReturn(final Supplier<R> toTrace, final Span span) {
+    <R> R traceSafelyAndReturn(final Supplier<R> toTrace, final Span span) {
         R result;
         try {
             result = toTrace.get();
@@ -289,7 +209,7 @@ public abstract class AbstractTracingEngine implements Tracing {
      * @param toTrace The method that should be executed and traced.
      * @param span    The tracing span that encloses this method.
      */
-    private void traceSafely(final Runnable toTrace, final Span span) {
+    void traceSafely(final Runnable toTrace, final Span span) {
         try {
             toTrace.run();
         } finally {
@@ -297,24 +217,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         }
     }
 
-    /**
-     * Creates a new Span as child of the context associated with {@code eventId}.
-     *
-     * @param description The description/name of the new context.
-     * @param eventId     The ID that represents a request throughout the whole execution.
-     * @return The new Span.
-     */
-    private Span buildContextFromId(final String description, final String eventId) {
-        final Optional<String> traceId = getTraceIdForAppSpecificId(eventId);
-        SpanContext parent = null;
-        if (traceId.isPresent()) {
-            parent = this.spanIdMappings.getIfPresent(traceId.get()).context();
-        }
-        //if the parent is null this span will be orphan but no exception is thrown.
-        final Span span = buildActiveSpanAsChild(description, new SpanTraceContext(parent));
-        updateIdMappings(eventId, span);
-        return span;
-    }
 
     /**
      * Creates a new Span as child of the passed {@link SpanContext} and activates it.
@@ -350,18 +252,6 @@ public abstract class AbstractTracingEngine implements Tracing {
      */
     abstract String getTraceIdFromSpan(final Span span);
 
-    /**
-     * Starts a parentless span that represents the beginning of a new trace and maps it to {@code eventId}.
-     *
-     * @param description The description or name that best describes this operation.
-     * @param eventId     The ID that represents a request throughout the whole execution.
-     * @return The first span of this trace.
-     */
-    private Span newTraceWithId(final String description, final String eventId) {
-        final Span span = buildActiveParentSpan(description);
-        updateIdMappings(eventId, span);
-        return span;
-    }
 
     /**
      * Creates a new parent span (a span with no parents) and activates it.
@@ -369,7 +259,7 @@ public abstract class AbstractTracingEngine implements Tracing {
      * @param description The description or name that best describes this operation.
      * @return The new parent span
      */
-    private Span buildActiveParentSpan(final String description) {
+    Span buildActiveParentSpan(final String description) {
         final Span span = this.tracer.buildSpan(description).ignoreActiveSpan().start();
         this.tracer.activateSpan(span);
         updateSpanMappings(span);
@@ -383,7 +273,7 @@ public abstract class AbstractTracingEngine implements Tracing {
      * @param context     The parent of this new span.
      * @return the new child Span.
      */
-    private Span buildActiveSpanAsChild(final String description, final SpanTraceContext context) {
+    Span buildActiveSpanAsChild(final String description, final SpanTraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, context);
         this.tracer.activateSpan(span);
         updateSpanMappings(span);
@@ -392,6 +282,7 @@ public abstract class AbstractTracingEngine implements Tracing {
 
     /**
      * Builds a span and activates it.
+     *
      * @param description The description or name that best describes this operation.
      * @return the new active span.
      */
@@ -401,5 +292,6 @@ public abstract class AbstractTracingEngine implements Tracing {
         updateSpanMappings(span);
         return span;
     }
+
 
 }

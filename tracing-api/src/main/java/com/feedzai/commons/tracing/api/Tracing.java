@@ -5,7 +5,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 /**
- * Specifies an API for distributed tracing of Feedzai's products.
+ * Specifies an API for distributed tracing of Feedzai's products. This API should be used in situations where there is
+ * no need to trace across thread context switches, or process boundaries.
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
@@ -16,6 +17,7 @@ public interface Tracing {
     /**
      * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
      * reuse, whenever the entry point of the request is executed. Traces operations that return a value of any type.
+     *
      *
      * <p>Similar to {@link Tracing#newTrace(Runnable, String)}, {@link Tracing#newTraceAsync(Supplier, String)} and
      * {@link Tracing#newTracePromise(Supplier, String)} but returning any value.
@@ -29,24 +31,7 @@ public interface Tracing {
 
 
     /**
-     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
-     * be used in situations where there is thread reuse, whenever the entry point of the request is executed. Traces
-     * operations that return a value of any type.
-     * <p>Similar to {@link Tracing#newTrace(Runnable, String, String)}, {@link Tracing#newTraceAsync(Supplier, String,
-     * String)} and {@link Tracing#newTracePromise(Supplier, String, String)} but returning any value.
-     *
-     * @param toTrace         Lambda containing the code that should be wrapped in a trace.
-     * @param description     The description or name that best describes this operation.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     * @param <R>             The Return type of the traced code.
-     * @return Returns whatever the traced code would have returned.
-     */
-    <R> R newTrace(Supplier<R> toTrace, String description, String eventId);
-
-
-    /**
-     * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
-     * reuse, whenever the entry point of the request is executed. Traces operations that do not return any values.
+     * Traces operations that do not return any values.
      *
      * <p>Similar to {@link Tracing#newTrace(Supplier, String)}, {@link Tracing#newTraceAsync(Supplier, String)} and
      * {@link Tracing#newTracePromise(Supplier, String)} but without returning any object.
@@ -57,23 +42,8 @@ public interface Tracing {
     void newTrace(Runnable toTrace, String description);
 
     /**
-     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
-     * be used in situations where there is thread reuse, whenever the entry point of the request is executed. Traces
-     * operations that do not return any values.
-     *
-     * <p>Similar to {@link Tracing#newTrace(Supplier, String, String)}, {@link Tracing#newTraceAsync(Supplier, String,
-     * String)} and {@link Tracing#newTracePromise(Supplier, String, String)} but without returning any object.
-     *
-     * @param toTrace         Lambda containing the code that should be wrapped in a trace.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     * @param description     The description or name that best describes this operation.
-     */
-    void newTrace(Runnable toTrace, String description, String eventId);
-
-    /**
-     * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
-     * reuse whenever the entry point of the request is executed. Traces operations that are performed in the background
-     * and return a {@link CompletableFuture}, where tracing the call does not trace the full execution.
+     * Traces operations that are performed in the background and return a {@link CompletableFuture}, where tracing the
+     * call does not trace the full execution.
      *
      * <p>Similar to {@link Tracing#newTrace(Supplier, String)}, {@link Tracing#newTrace(Runnable,
      * String)} and {@link Tracing#newTracePromise(Supplier, String)} but returning a {@link CompletableFuture}
@@ -85,29 +55,9 @@ public interface Tracing {
      */
     <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description);
 
-
     /**
-     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
-     * be used in situations where there is thread reuse whenever the entry point of the request is executed. Traces
-     * operations that are performed in the background and return a {@link CompletableFuture}, where tracing the call
-     * does not trace the full execution.
-     *
-     * <p>Similar to {@link Tracing#newTrace(Supplier, String, String)}, {@link Tracing#newTrace(Runnable, String,
-     * String)} and {@link Tracing#newTracePromise(Supplier, String, String)} but returning a {@link CompletableFuture}
-     *
-     * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
-     * @param description     The description or name that best describes this operation.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     * @param <R>             The Return type of the traced code.
-     * @return Returns the {@link CompletableFuture} the traced code would have returned.
-     */
-    <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                           String eventId);
-
-    /**
-     * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
-     * reuse, whenever the entry point of the request is executed. Traces operations that are performed in the
-     * background and return a {@link Promise}, where tracing the call does not trace the full execution.
+     * Traces operations that are performed in the background and return a {@link Promise}, where tracing the call does
+     * not trace the full execution.
      *
      * <p>Similar to {@link Tracing#newTrace(Supplier, String)}, {@link Tracing#newTrace(Runnable, String)} and {@link
      * Tracing#newTraceAsync(Supplier, String)} but returning a {@link Promise}
@@ -117,23 +67,6 @@ public interface Tracing {
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     Promise newTracePromise(Supplier<Promise> toTraceAsync, String description);
-
-
-    /**
-     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
-     * be used in situations where there is thread reuse, whenever the entry point of the request is executed. Traces
-     * operations that are performed in the background and return a {@link Promise}, where tracing the call does not
-     * trace the full execution.
-     *
-     * <p>Similar to {@link Tracing#newTrace(Supplier, String, String)}, {@link Tracing#newTrace(Runnable, String,
-     * String)} and {@link Tracing#newTraceAsync(Supplier, String, String)} but returning a {@link Promise}
-     *
-     * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
-     * @param description     The description or name that best describes this operation.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     * @return Returns the {@link Promise} the traced code would've returned.
-     */
-    Promise newTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -150,47 +83,8 @@ public interface Tracing {
     <R> R addToTrace(Supplier<R> toTrace, String description);
 
     /**
-     * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
-     * become a child of the currently active trace context.
-     *
-     * <p>Should be used when the execution of a request spans multiple threads with no instrumentable synchronization
-     * points (i.e., not possible to propagate context across threads), or when threads are reused for multiple requests
-     * (thread pools).
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Runnable, String, String)} and
-     * {@link Tracing#addToTraceAsync(Supplier, String, String)} but returning any value.
-     *
-     * @param toTrace         Lambda containing the code that should be wrapped in a trace.
-     * @param description     The description or name that best describes this operation.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     * @param <R>             The Return type of the traced code.
-     * @return Returns whatever the traced code would have returned.
-     */
-    <R> R addToTrace(Supplier<R> toTrace, String description, String eventId);
-
-    /**
-     * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
-     * become a child of the currently active trace context.
-     *
-     * <p>Useful when the request's execution spans multiple components/nodes that belong to the same trace.
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Runnable, String, TraceContext)} and
-     * {@link Tracing#addToTraceAsync(Supplier, String, TraceContext)} but returning any value.
-     *
-     * @param toTrace           Lambda containing the code that should be wrapped in a trace.
-     * @param description       The description or name that best describes this operation.
-     * @param serializedContext Represents the context of the current execution. Receiving this context as TraceContext,
-     *                          as opposed to a tracing specific object decouples this API from any lower level tracing
-     *                          API constructs (i.e., OpenTracing's Span or SpanContext).
-     * @param <R>               The Return type of the traced code.
-     * @return Returns whatever the traced code would have returned.
-     */
-    <R> R addToTrace(Supplier<R> toTrace, String description, TraceContext serializedContext);
-
-    /**
-     * Traces operations that do not return any values. This method will add a Span to an existing trace which will
-     * become a child of the currently active trace context.
-     *
+     * Traces operations that do not return any values.
+     * 
      * <p>Similar to {@link Tracing#addToTrace(Supplier, String)} and {@link Tracing#addToTraceAsync(Supplier, String)}
      * but without returning any object.
      *
@@ -199,46 +93,9 @@ public interface Tracing {
      */
     void addToTrace(Runnable toTrace, String description);
 
-
-    /**
-     * Traces operations that do not return any values. This method will add a Span to an existing trace which will
-     * become a child of the currently active trace context.
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, String)} and
-     * {@link Tracing#addToTraceAsync(Supplier, String, String)} but without returning any object.
-     *
-     * <p>Should be used when the execution of a request spans multiple threads with no instrumentable synchronization
-     * points (i.e., not possible to propagate context across threads), or when threads are reused for multiple requests
-     * (thread pools).
-     *
-     * @param toTrace         Lambda containing the code that should be wrapped in a trace.
-     * @param description     The description or name that best describes this operation.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     */
-    void addToTrace(Runnable toTrace, String description, String eventId);
-
-    /**
-     * Traces operations that do not return any values. This method will add a Span to an existing trace which will
-     * become a child of the currently active trace context.
-     *
-     * <p>Useful when the request's execution spans multiple components/nodes that belong to the same trace.
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, TraceContext)} and
-     * {@link Tracing#addToTraceAsync(Supplier, String, TraceContext)} but without returning any object.
-     *
-     * @param toTrace           Lambda containing the code that should be wrapped in a trace.
-     * @param description       The description or name that best describes this operation.
-     * @param serializedContext Represents the context of the current execution. Receiving this context as TraceContext,
-     *                          as opposed to a tracing specific object decouples this API from any lower level tracing
-     *                          API constructs (i.e., OpenTracing's Span or SpanContext).
-     */
-    void addToTrace(Runnable toTrace, String description, TraceContext serializedContext);
-
-
     /**
      * Traces operations that are performed in the background and return a {@link CompletableFuture}, where tracing the
-     * call does not trace the full execution. This method will add a Span to an existing trace which will become a
-     * child of the currently active trace context.
+     * call does not trace the full execution.
      *
      * <p>Similar to {@link Tracing#addToTrace(Supplier, String)} and {@link Tracing#addToTrace(Runnable, String)} but
      * returning a {@link CompletableFuture}
@@ -251,52 +108,8 @@ public interface Tracing {
     <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description);
 
     /**
-     * Traces operations that are performed in the background and return a {@link CompletableFuture}, where tracing the
-     * call does not trace the full execution. This method will add a Span to an existing trace which will become a
-     * child of the currently active trace context.
-     *
-     * <p>Should be used when the execution of a request spans multiple threads, with no instrumentable synchronization
-     * points (i.e., not possible to propagate context across threads), or when threads are reused for multiple requests
-     * (thread pools).
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, String)} and
-     * {@link Tracing#addToTrace(Runnable, String, String)} but returning a {@link CompletableFuture}
-     *
-     * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
-     * @param description     The description or name that best describes this operation.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     * @param <R>             The Return type of the traced code.
-     * @return Returns the {@link CompletableFuture} the traced code would have returned.
-     */
-    <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                             String eventId);
-
-    /**
-     * Traces operations that are performed in the background and return a {@link CompletableFuture}, where tracing the
-     * call does not trace the full execution. This method will add a Span to an existing trace which will become a
-     * child of the currently active trace context.
-     *
-     * <p>Useful when the request's execution spans multiple components/nodes that belong to the same trace.
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, TraceContext)} and
-     * {@link Tracing#addToTrace(Runnable, String, TraceContext)} but returning a {@link CompletableFuture}
-     *
-     * @param toTraceAsync      Lambda containing the code that should be wrapped in a trace.
-     * @param description       The description or name that best describes this operation.
-     * @param serializedContext Represents the context of the current execution.  Receiving this context as
-     *                          TraceContext, as opposed to a tracing specific object decouples this API from any lower
-     *                          level tracing API constructs (i.e., OpenTracing's Span or SpanContext).
-     * @param <R>               The Return type of the traced code.
-     * @return Returns the {@link CompletableFuture} the traced code would have returned.
-     */
-    <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                             TraceContext serializedContext);
-
-
-    /**
      * Traces operations that are performed in the background and return a {@link Promise}, where tracing the call does
-     * not trace the full execution. This method will add a Span to an existing trace which will become a child of the
-     * currently active trace context.
+     * not trace the full execution.
      *
      * <p>Similar to {@link Tracing#addToTrace(Supplier, String)}, {@link Tracing#addToTrace(Runnable, String)} and
      * {@link Tracing#addToTraceAsync(Supplier, String)} but returning a {@link Promise}
@@ -306,47 +119,6 @@ public interface Tracing {
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description);
-
-    /**
-     * Traces operations that are performed in the background and return a {@link Promise}, where tracing the call does
-     * not trace the full execution. This method will add a Span to an existing trace which will become a child of the
-     * currently active trace context.
-     *
-     * <p>Should be used when the execution of a request spans multiple threads, with no instrumentable synchronization
-     * points (i.e., not possible to propagate context across threads), or when threads are reused for multiple requests
-     * (thread pools).
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, String)},
-     * {@link Tracing#addToTrace(Runnable, String, String)} and {@link Tracing#addToTraceAsync(Supplier, String,
-     * String)} but returning a {@link Promise}
-     *
-     * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
-     * @param description     The description or name that best describes this operation.
-     * @param eventId The ID that represents a request throughout the whole execution.
-     * @return Returns the {@link Promise} the traced code would've returned.
-     */
-    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
-
-
-    /**
-     * Traces operations that are performed in the background and return a {@link Promise}, where tracing the call does
-     * not trace the full execution. This method will add a Span to an existing trace which will become a child of the
-     * currently active trace context.
-     *
-     * <p>Useful when the request's execution spans multiple components/nodes/threads that belong to the same trace.
-     *
-     * <p>Similar to {@link Tracing#addToTrace(Supplier, String, TraceContext)},
-     * {@link Tracing#addToTrace(Runnable, String, TraceContext)} and {@link Tracing#addToTraceAsync(Supplier, String,
-     * TraceContext)} but returning a {@link Promise}
-     *
-     * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
-     * @param description  The description or name that best describes this operation.
-     * @param context      Represents the context of the current execution.  Receiving this context as TraceContext, as
-     *                     opposed to a tracing specific object decouples this API from any lower level tracing API
-     *                     constructs (i.e., OpenTracing's Span or SpanContext).
-     * @return Returns the {@link Promise} the traced code would've returned.
-     */
-    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, TraceContext context);
 
 
 }
