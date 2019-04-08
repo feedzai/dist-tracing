@@ -17,8 +17,8 @@ public interface Tracing {
      * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
      * reuse, whenever the entry point of the request is executed. Traces operations that return a value of any type.
      *
-     * <p>Similar o {@link Tracing#newTrace(Runnable, String)} and {@link Tracing#newTraceAsync(Supplier, String)} but
-     * returning any value.
+     * <p>Similar to {@link Tracing#newTrace(Runnable, String)}, {@link Tracing#newTraceAsync(Supplier, String)} and
+     * {@link Tracing#newTracePromise(Supplier, String)} but returning any value.
      *
      * @param toTrace     Lambda containing the code that should be wrapped in a trace.
      * @param description The description or name that best describes this operation.
@@ -27,12 +27,29 @@ public interface Tracing {
      */
     <R> R newTrace(Supplier<R> toTrace, String description);
 
+
+    /**
+     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
+     * be used in situations where there is thread reuse, whenever the entry point of the request is executed. Traces
+     * operations that return a value of any type.
+     * <p>Similar to {@link Tracing#newTrace(Runnable, String, String)}, {@link Tracing#newTraceAsync(Supplier, String,
+     * String)} and {@link Tracing#newTracePromise(Supplier, String, String)} but returning any value.
+     *
+     * @param toTrace         Lambda containing the code that should be wrapped in a trace.
+     * @param description     The description or name that best describes this operation.
+     * @param eventId The ID that represents a request throughout the whole execution.
+     * @param <R>             The Return type of the traced code.
+     * @return Returns whatever the traced code would have returned.
+     */
+    <R> R newTrace(Supplier<R> toTrace, String description, String eventId);
+
+
     /**
      * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
      * reuse, whenever the entry point of the request is executed. Traces operations that do not return any values.
      *
-     * <p>Similar to {@link Tracing#newTrace(Supplier, String)} and {@link Tracing#newTraceAsync(Supplier, String)} but
-     * without returning any object.
+     * <p>Similar to {@link Tracing#newTrace(Supplier, String)}, {@link Tracing#newTraceAsync(Supplier, String)} and
+     * {@link Tracing#newTracePromise(Supplier, String)} but without returning any object.
      *
      * @param toTrace     Lambda containing the code that should be wrapped in a trace.
      * @param description The description or name that best describes this operation.
@@ -40,12 +57,26 @@ public interface Tracing {
     void newTrace(Runnable toTrace, String description);
 
     /**
+     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
+     * be used in situations where there is thread reuse, whenever the entry point of the request is executed. Traces
+     * operations that do not return any values.
+     *
+     * <p>Similar to {@link Tracing#newTrace(Supplier, String, String)}, {@link Tracing#newTraceAsync(Supplier, String,
+     * String)} and {@link Tracing#newTracePromise(Supplier, String, String)} but without returning any object.
+     *
+     * @param toTrace         Lambda containing the code that should be wrapped in a trace.
+     * @param eventId The ID that represents a request throughout the whole execution.
+     * @param description     The description or name that best describes this operation.
+     */
+    void newTrace(Runnable toTrace, String description, String eventId);
+
+    /**
      * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
      * reuse whenever the entry point of the request is executed. Traces operations that are performed in the background
      * and return a {@link CompletableFuture}, where tracing the call does not trace the full execution.
      *
-     * <p>Similar to {@link Tracing#newTrace(Supplier, String)} and {@link Tracing#newTrace(Runnable, String)} but
-     * returning a {@link CompletableFuture}
+     * <p>Similar to {@link Tracing#newTrace(Supplier, String)}, {@link Tracing#newTrace(Runnable,
+     * String)} and {@link Tracing#newTracePromise(Supplier, String)} but returning a {@link CompletableFuture}
      *
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
@@ -53,6 +84,25 @@ public interface Tracing {
      * @return Returns the {@link CompletableFuture} the traced code would have returned.
      */
     <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description);
+
+
+    /**
+     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
+     * be used in situations where there is thread reuse whenever the entry point of the request is executed. Traces
+     * operations that are performed in the background and return a {@link CompletableFuture}, where tracing the call
+     * does not trace the full execution.
+     *
+     * <p>Similar to {@link Tracing#newTrace(Supplier, String, String)}, {@link Tracing#newTrace(Runnable, String,
+     * String)} and {@link Tracing#newTracePromise(Supplier, String, String)} but returning a {@link CompletableFuture}
+     *
+     * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
+     * @param description     The description or name that best describes this operation.
+     * @param eventId The ID that represents a request throughout the whole execution.
+     * @param <R>             The Return type of the traced code.
+     * @return Returns the {@link CompletableFuture} the traced code would have returned.
+     */
+    <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
+                                           String eventId);
 
     /**
      * Begins a new trace by creating a parentless span. This method should be used in situations where there is thread
@@ -67,6 +117,23 @@ public interface Tracing {
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     Promise newTracePromise(Supplier<Promise> toTraceAsync, String description);
+
+
+    /**
+     * Begins a new trace by creating a parentless span and associates it to {@code eventId}. This method should
+     * be used in situations where there is thread reuse, whenever the entry point of the request is executed. Traces
+     * operations that are performed in the background and return a {@link Promise}, where tracing the call does not
+     * trace the full execution.
+     *
+     * <p>Similar to {@link Tracing#newTrace(Supplier, String, String)}, {@link Tracing#newTrace(Runnable, String,
+     * String)} and {@link Tracing#newTraceAsync(Supplier, String, String)} but returning a {@link Promise}
+     *
+     * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
+     * @param description     The description or name that best describes this operation.
+     * @param eventId The ID that represents a request throughout the whole execution.
+     * @return Returns the {@link Promise} the traced code would've returned.
+     */
+    Promise newTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -95,11 +162,11 @@ public interface Tracing {
      *
      * @param toTrace         Lambda containing the code that should be wrapped in a trace.
      * @param description     The description or name that best describes this operation.
-     * @param fromTraceWideId The ID that represents a request throughout the whole execution.
+     * @param eventId The ID that represents a request throughout the whole execution.
      * @param <R>             The Return type of the traced code.
      * @return Returns whatever the traced code would have returned.
      */
-    <R> R addToTrace(Supplier<R> toTrace, String description, String fromTraceWideId);
+    <R> R addToTrace(Supplier<R> toTrace, String description, String eventId);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -146,9 +213,9 @@ public interface Tracing {
      *
      * @param toTrace         Lambda containing the code that should be wrapped in a trace.
      * @param description     The description or name that best describes this operation.
-     * @param fromTraceWideId The ID that represents a request throughout the whole execution.
+     * @param eventId The ID that represents a request throughout the whole execution.
      */
-    void addToTrace(Runnable toTrace, String description, String fromTraceWideId);
+    void addToTrace(Runnable toTrace, String description, String eventId);
 
     /**
      * Traces operations that do not return any values. This method will add a Span to an existing trace which will
@@ -197,12 +264,12 @@ public interface Tracing {
      *
      * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
      * @param description     The description or name that best describes this operation.
-     * @param fromTraceWideId The ID that represents a request throughout the whole execution.
+     * @param eventId The ID that represents a request throughout the whole execution.
      * @param <R>             The Return type of the traced code.
      * @return Returns the {@link CompletableFuture} the traced code would have returned.
      */
     <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                             String fromTraceWideId);
+                                             String eventId);
 
     /**
      * Traces operations that are performed in the background and return a {@link CompletableFuture}, where tracing the
@@ -255,10 +322,10 @@ public interface Tracing {
      *
      * @param toTraceAsync    Lambda containing the code that should be wrapped in a trace.
      * @param description     The description or name that best describes this operation.
-     * @param fromTraceWideId The ID that represents a request throughout the whole execution.
+     * @param eventId The ID that represents a request throughout the whole execution.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String fromTraceWideId);
+    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
 
 
     /**

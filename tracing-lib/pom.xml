@@ -36,7 +36,6 @@
         <dependency>
             <groupId>com.feedzai.commons.tracing</groupId>
             <artifactId>tracing-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
