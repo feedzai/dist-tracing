@@ -48,27 +48,3 @@ Continuing a trace is a bit trickier than starting it, since it requires accessi
 ```
 
 The library will find the trace associated to this ID and add the new span as a child. Keep in mind that to use this method you must have mapped the application specific ID to the traceID by calling `newTrace(.., String eventID)`
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
-

@@ -11,5 +11,3 @@ In this book you will first find a small explanation of the tracing model, then 
     * [API Description With ID](API-DESC-ID.md)
     * [API Description With Context](API-DESC-CTX.md)
 * [Promise](PROMISE.md)
-
-

@@ -63,28 +63,3 @@ Continuing a trace is a bit trickier than starting it, since it requires accessi
 ```
 
 The library will magically attach the new Span to the current trace.
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
-

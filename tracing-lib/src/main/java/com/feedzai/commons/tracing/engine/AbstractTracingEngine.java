@@ -244,13 +244,14 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
     }
 
     /**
-     * Obtains a TraceID from a Span object. Since the only way to do this is through manipulation of the serialized
-     * span String, which is implementation specific, this method cannot be implemented in this class.
+     * Obtains a TraceID from a Span object.
      *
      * @param span Span from which we want the traceID.
      * @return A String representing the traceId.
      */
-    abstract String getTraceIdFromSpan(final Span span);
+    protected String getTraceIdFromSpan(final Span span) {
+        return span.context().toTraceId();
+    }
 
 
     /**

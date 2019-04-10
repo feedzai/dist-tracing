@@ -55,26 +55,3 @@ Continuing a trace is a bit trickier than starting it, since it requires accessi
 
 Here the library will grab the current thread's tracing context and store it in a [TraceContext](TRACECTX.md) object that you can pass when tracing the next part of the execution. Note that **obtaining the current context must be done before switching context**, i.e., you cannot do it inside the lambda.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
-
-
-

@@ -20,12 +20,14 @@
         <opentracing.version>0.32.0</opentracing.version>
         <guava.version>18.0</guava.version>
         <logback.version>1.2.3</logback.version>
+        <jaeger.version>0.34.0</jaeger.version>
     </properties>
 
     <modules>
         <module>site</module>
         <module>tracing-api</module>
         <module>tracing-lib</module>
+        <module>tracing-lib-jaeger</module>
     </modules>
 
     <scm>
@@ -103,7 +105,11 @@
                 <artifactId>logback-classic</artifactId>
                 <version>${logback.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>io.jaegertracing</groupId>
+                <artifactId>jaeger-client</artifactId>
+                <version>${jaeger.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
