@@ -1,14 +1,14 @@
 package com.feedzai.commons.tracing.api;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
  * Represents any class that supports setting callbacks to be executed upon completion.
  *
+ * @param <T> The type consumed by the onComplete method.
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-
-public interface Promise {
+public interface Promise<T> {
 
 
     /**
@@ -17,16 +17,18 @@ public interface Promise {
      * @param callOnCompletion Lambda that represents the method that should be executed upon completion
      * @return This {@link Promise}
      */
-    Promise onComplete(Function<Promise, Promise> callOnCompletion);
+    Promise onCompletePromise(Consumer<T> callOnCompletion);
 
     /**
      * Registers a method to be called by the {@link Promise} when the result of the computation terminates with an
      * exception.
      *
-     * @param callOnError Lambda that represents the method that should be executed upon completion
+     * @param callOnError Lambda that represents a method that will handle the exception thrown by the class
+     *                    implementing {@link Promise}
      * @return This {@link Promise}
      */
-    Promise onError(Function<Promise, Promise> callOnError);
+    Promise onErrorPromise(Consumer<Throwable> callOnError);
+
 
 
 }

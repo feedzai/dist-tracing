@@ -1,5 +1,6 @@
 package com.feedzai.commons.tracing.api;
 
+import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -11,6 +12,65 @@ import java.util.function.Supplier;
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
 public interface TracingWithContext extends Tracing {
+
+    /**
+     * Creates a new Span that is the root of this process's portion of the trace. Similarly to {@link
+     * Tracing#newTrace(Supplier, String)} this method creates a "root dependency",  meaning future spans
+     * can become children of this span even after it has finished. However, unlike the aforementioned method, this will
+     * become a child of the previous process's context.
+     *
+     * <p>Similar to {@link TracingWithContext#newProcess(Runnable, String, TraceContext)}, {@link
+     * TracingWithContext#newProcessFuture(Supplier, String, TraceContext)} and {@link TracingWithContext#newProcessPromise(Supplier,
+     * String, TraceContext)} but returning what was returned by the traced code.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param context     The context that should be this span's parent
+     * @param <R>         The return type.
+     * @return What was to be returned by the traced code.
+     */
+    <R> R newProcess(final Supplier<R> toTrace, final String description, final TraceContext context);
+
+    /**
+     * Creates a new Span that is the root of this process's portion of the trace.
+     *
+     * <p>Similar to {@link TracingWithContext#newProcess(Supplier, String, TraceContext)}, {@link
+     * TracingWithContext#newProcessFuture(Supplier, String, TraceContext)} and {@link TracingWithContext#newProcessPromise(Supplier,
+     * String, TraceContext)} but returning what was returning nothing.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param context     The context that should be this span's parent
+     */
+    void newProcess(final Runnable toTrace, final String description, final TraceContext context);
+
+    /**
+     * Creates a new Span that is the root of this process's portion of the trace.
+     *
+     * <p>Similar to {@link TracingWithContext#newProcess(Supplier, String, TraceContext)}, {@link
+     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessPromise(Supplier, String,
+     * TraceContext)} but returning a CompletableFuture object.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param context     The context that should be this span's parent
+     */
+    void newProcessPromise(final Supplier<Promise> toTrace, final String description,
+                           final TraceContext context);
+
+    /**
+     * Creates a new Span that is the root of this process's portion of the trace.
+     *
+     * <p>Similar to {@link TracingWithContext#newProcess(Supplier, String, TraceContext)}, {@link
+     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessFuture(Supplier, String,
+     * TraceContext)} but returning a Promise object.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param context     The context that should be this span's parent
+     */
+    void newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+                          final TraceContext context);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -75,4 +135,39 @@ public interface TracingWithContext extends Tracing {
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, TraceContext context);
+
+
+
+    /**
+     * Serializes the current context so that it can be deserialized by another service with implementation specific
+     * instrumentation.
+     *
+     * @return Return the serialized context.
+     */
+    Serializable serializeContext();
+
+    /**
+     * Deserializes the context received from another service.
+     *
+     * @param headers The serialized context.
+     * @return The deserialized version of the context.
+     */
+    TraceContext deserializeContext(final Serializable headers);
+
+    /**
+     * Returns the current active content.
+     *
+     * @return The current active context
+     */
+    TraceContext currentContext();
+
+
+    /**
+     * Returns the current context associated to an object.
+     *
+     * @param obj The object to be used as key.
+     * @return The current context associated to the object.
+     */
+    TraceContext currentContextforObject(final Object obj);
+
 }

@@ -2,8 +2,9 @@ package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.api.TracingWithContext;
-import com.feedzai.commons.tracing.api.TracingWithId;
+import com.feedzai.commons.tracing.api.TracingOpen;
+import com.feedzai.commons.tracing.api.TracingOpenWithContext;
+import com.feedzai.commons.tracing.api.TracingOpenWithId;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -13,9 +14,9 @@ import io.opentracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -25,18 +26,26 @@ import java.util.function.Supplier;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public abstract class AbstractTracingEngine implements TracingWithContext, TracingWithId {
+public abstract class AbstractTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
 
     /**
      * The Tracer object that will be used by the library. This is an OpenTracing API class so it does not make any
      * assumption regarding the underlying tracing engine.
      */
-    private final Tracer tracer;
+    protected final Tracer tracer;
 
     /**
      * Maps a traceID to the span that currently represents its point in the execution.
      */
-    final Cache<String, Span> spanIdMappings;
+    final Cache<String, LinkedList<Span>> spanIdMappings;
+
+    /**
+     * Maps a uniquely identifying object to an open span.
+     */
+    protected final Cache<Object, Span> responseMappings;
+
+
+
 
     /**
      * The logger.
@@ -52,16 +61,122 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      */
     AbstractTracingEngine(final Tracer tracer, final CacheConfiguration configuration) {
         this.tracer = tracer;
-        this.spanIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().getNano(), TimeUnit.NANOSECONDS)
+        this.spanIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
                 .maximumSize(configuration.getMaximumSize()).build();
+        this.responseMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
+                .maximumSize(configuration.getMaximumSize()).weakKeys().build();
+    }
 
+    @Override
+    public <R> R newProcess(final Supplier<R> toTrace, final String description, final TraceContext context) {
+        final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        updateSpanMappings(span);
+
+        final R result;
+        result = traceParentSafelyAndReturn(toTrace, span);
+        return result;
+    }
+
+    @Override
+    public void newProcess(final Runnable toTrace, final String description, final TraceContext context) {
+        final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        updateSpanMappings(span);
+
+        traceParentSafely(toTrace, span);
+    }
+
+    @Override
+    public void newProcessPromise(final Supplier<Promise> toTrace, final String description,
+                                  final TraceContext context) {
+        final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        updateSpanMappings(span);
+
+        finishParentPromiseSpan(toTrace, span);
+    }
+
+    @Override
+    public void newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+                                 final TraceContext context) {
+        final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        updateSpanMappings(span);
+        finishParentFutureSpan(toTrace.get(), span);
+    }
+
+    @Override
+    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                             final String description,
+                                             final TraceContext context) {
+        final Span span = buildActiveSpanAsChild(description, (SpanTraceContext) context);
+        responseMappings.put(object, span);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                             final String description) {
+        final Span span = buildActiveSpan(description);
+        responseMappings.put(object, span);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object,
+                                                         final String description,
+                                                         final TraceContext context) {
+        final Span span = buildActiveSpanAsChild(description, (SpanTraceContext) context);
+        responseMappings.put(object, span);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object,
+                                                         final String description) {
+        final Span span = buildActiveSpan(description);
+        responseMappings.put(object, span);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description,
+                               final TraceContext context) {
+        final Span span = buildActiveSpanAsChild(description, (SpanTraceContext) context);
+        final String traceId = getTraceIdFromSpan(span);
+        cacheObject(object, span, traceId);
+        toTraceAsync.run();
+    }
+
+    @Override
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description,
+                                final TraceContext context) {
+        final Span span = buildActiveSpanAsChild(description, (SpanTraceContext) context);
+        final String traceId = getTraceIdFromSpan(span);
+        cacheObject(value, span, traceId);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public void addToTraceOpen(final Runnable toTrace, final Object object, final String description) {
+        final Span span = buildActiveSpan(description);
+        final String traceId = getTraceIdFromSpan(span);
+        cacheObject(object, span, traceId);
+        toTrace.run();
+    }
+
+    @Override
+    public <R> R addToTraceOpen(final Supplier<R> toTrace, final Object value, final String description) {
+        final Span span = buildActiveSpan(description);
+        final String traceId = getTraceIdFromSpan(span);
+        cacheObject(value, span, traceId);
+        return toTrace.get();
     }
 
     @Override
     public <R> R newTrace(final Supplier<R> toTrace, final String description) {
         final Span span = buildActiveParentSpan(description);
         final R result;
-        result = traceSafelyAndReturn(toTrace, span);
+        result = traceParentSafelyAndReturn(toTrace, span);
         return result;
     }
 
@@ -69,22 +184,21 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
     @Override
     public void newTrace(final Runnable toTrace, final String description) {
         final Span span = buildActiveParentSpan(description);
-        traceSafely(toTrace, span);
+        traceParentSafely(toTrace, span);
     }
-
 
     @Override
     public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync,
                                                   final String description) {
         final Span span = buildActiveParentSpan(description);
-        return finishFutureSpan(toTraceAsync.get(), span);
+        return finishParentFutureSpan(toTraceAsync.get(), span);
     }
 
 
     @Override
     public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
         final Span span = buildActiveParentSpan(description);
-        return finishPromiseSpan(toTraceAsync.get(), span);
+        return finishParentPromiseSpan(toTraceAsync, span);
     }
 
 
@@ -132,7 +246,7 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
     @Override
     public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
         final Span span = buildActiveSpan(description);
-        return finishPromiseSpan(toTraceAsync.get(), span);
+        return finishPromiseSpan(toTraceAsync, span);
     }
 
 
@@ -140,14 +254,14 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
     public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description,
                                      final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
-        return finishPromiseSpan(toTraceAsync.get(), span);
+        return finishPromiseSpan(toTraceAsync, span);
     }
 
 
     /**
      * Finishes span after the {@link CompletableFuture} has completed, either successfully or exceptionally.
      *
-     * <p>Similar to {@link AbstractTracingEngine#finishPromiseSpan(Promise, Span)} but for {@link CompletableFuture}
+     * <p>Similar to {@link AbstractTracingEngine#finishPromiseSpan(Supplier, Span)} but for {@link CompletableFuture}
      *
      * @param toTraceAsync The {@link CompletableFuture} to which the callback will be attached.
      * @param span         The span that is wrapping the execution and should be finished.
@@ -155,10 +269,59 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      * @return the same {@link CompletableFuture} that was passed in {@code toTraceAsync}
      */
     <R> CompletableFuture<R> finishFutureSpan(final CompletableFuture<R> toTraceAsync, final Span span) {
-        return toTraceAsync.handle((future, exception) -> {
-            span.log(exception.getMessage());
+        toTraceAsync.handle((future, exception) -> {
             span.finish();
+            tracer.scopeManager().active().close();
+            popSpanForTraceId(span);
             return future;
+        });
+        return toTraceAsync;
+    }
+
+    private void popSpanForTraceId(final Span span) {
+        final LinkedList<Span> cached = spanIdMappings.getIfPresent(getTraceIdFromSpan(span));
+        if (cached != null) {
+            cached.remove(span);
+        }
+    }
+
+    /**
+     * Finishes span after the {@link CompletableFuture} has completed, either successfully or exceptionally.
+     *
+     * <p>Similar to {@link AbstractTracingEngine#finishPromiseSpan(Supplier, Span)} but for {@link CompletableFuture}
+     *
+     * @param toTraceAsync The {@link CompletableFuture} to which the callback will be attached.
+     * @param span         The span that is wrapping the execution and should be finished.
+     * @param <R>          The return type of the {@link CompletableFuture}
+     * @return the same {@link CompletableFuture} that was passed in {@code toTraceAsync}
+     */
+    <R> CompletableFuture<R> finishParentFutureSpan(final CompletableFuture<R> toTraceAsync, final Span span) {
+        toTraceAsync.handle((future, exception) -> {
+            span.finish();
+            tracer.scopeManager().active().close();
+            return future;
+        });
+        return toTraceAsync;
+    }
+
+    /**
+     * Attaches callback to finish span after the {@link Promise} has completed.
+     *
+     * <p>Similar to {@link AbstractTracingEngine#finishFutureSpan(CompletableFuture, Span)} but for {@link Promise}
+     *
+     * @param toTraceAsync The {@link Promise} to which the callback will be attached.
+     * @param span         The span that is wrapping the execution and should be finished.
+     * @return the same {@link Promise} that was passed in {@code toTraceAsync}
+     */
+    Promise finishPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
+        return toTraceAsync.get().onCompletePromise(x -> {
+            span.finish();
+            tracer.scopeManager().active().close();
+            popSpanForTraceId(span);
+        }).onErrorPromise(x -> {
+            span.finish();
+            tracer.scopeManager().active().close();
+            popSpanForTraceId(span);
         });
     }
 
@@ -171,12 +334,14 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      * @param span         The span that is wrapping the execution and should be finished.
      * @return the same {@link Promise} that was passed in {@code toTraceAsync}
      */
-    Promise finishPromiseSpan(final Promise toTraceAsync, final Span span) {
-        final Function<Promise, Promise> onFinish = promise -> {
+    Promise finishParentPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
+        return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
-            return promise;
-        };
-        return toTraceAsync.onComplete(onFinish).onError(onFinish);
+            tracer.scopeManager().active().close();
+        }).onErrorPromise(x -> {
+            span.finish();
+            tracer.scopeManager().active().close();
+        });
     }
 
     /**
@@ -196,6 +361,30 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
             result = toTrace.get();
         } finally {
             span.finish();
+            tracer.scopeManager().active().close();
+            popSpanForTraceId(span);
+        }
+        return result;
+    }
+
+    /**
+     * Closes the enclosing scope when the supplied is finished, regardless of whether it finished correctly or
+     * exceptionally.
+     *
+     * <p>Similar to {@link AbstractTracingEngine#traceSafely(Runnable, Span)} but returning a value.
+     *
+     * @param toTrace The method that should be executed and traced.
+     * @param span    The tracing span that encloses this method.
+     * @param <R>     The return type of the executed method.
+     * @return The object that is returned by the executed method.
+     */
+    <R> R traceParentSafelyAndReturn(final Supplier<R> toTrace, final Span span) {
+        R result;
+        try {
+            result = toTrace.get();
+        } finally {
+            span.finish();
+            tracer.scopeManager().active().close();
         }
         return result;
     }
@@ -214,6 +403,26 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
             toTrace.run();
         } finally {
             span.finish();
+            tracer.scopeManager().active().close();
+            popSpanForTraceId(span);
+        }
+    }
+
+    /**
+     * Closes the enclosing scope when the supplied is finished, regardless of whether it finished correctly or
+     * exceptionally.
+     *
+     * <p>Similar to {@link AbstractTracingEngine#traceSafelyAndReturn(Supplier, Span)} but returning nothing.
+     *
+     * @param toTrace The method that should be executed and traced.
+     * @param span    The tracing span that encloses this method.
+     */
+    void traceParentSafely(final Runnable toTrace, final Span span) {
+        try {
+            toTrace.run();
+        } finally {
+            span.finish();
+            tracer.scopeManager().active().close();
         }
     }
 
@@ -227,7 +436,8 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      */
     private Span buildSpanFromAsyncContext(final String description, final SpanTraceContext context) {
         final Span span = this.tracer.buildSpan(description).asChildOf(context.get()).start();
-        this.tracer.activateSpan(span);
+        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+        this.tracer.scopeManager().activate(span, true);
         updateSpanMappings(span);
         return span;
     }
@@ -238,9 +448,16 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      *
      * @param span Span that represents the current context.
      */
-    private void updateSpanMappings(final Span span) {
+    protected void updateSpanMappings(final Span span) {
         final String traceId = getTraceIdFromSpan(span);
-        this.spanIdMappings.put(traceId, span);
+        final LinkedList<Span> spans = spanIdMappings.getIfPresent(traceId);
+        if (spans != null && (spans.isEmpty() || !Long.toString(Thread.currentThread().getId()).equals(spans.peek().getBaggageItem("thread-id")))) {
+            try {
+                spans.push(span);
+            } catch (Exception e) {
+                logger.error(e.getLocalizedMessage());
+            }
+        }
     }
 
     /**
@@ -249,9 +466,7 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      * @param span Span from which we want the traceID.
      * @return A String representing the traceId.
      */
-    protected String getTraceIdFromSpan(final Span span) {
-        return span.context().toTraceId();
-    }
+    protected abstract String getTraceIdFromSpan(final Span span);
 
 
     /**
@@ -262,7 +477,9 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      */
     Span buildActiveParentSpan(final String description) {
         final Span span = this.tracer.buildSpan(description).ignoreActiveSpan().start();
-        this.tracer.activateSpan(span);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
+        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+        this.tracer.scopeManager().activate(span, true);
         updateSpanMappings(span);
         return span;
     }
@@ -276,7 +493,8 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      */
     Span buildActiveSpanAsChild(final String description, final SpanTraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, context);
-        this.tracer.activateSpan(span);
+        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+        this.tracer.scopeManager().activate(span, true);
         updateSpanMappings(span);
         return span;
     }
@@ -289,9 +507,62 @@ public abstract class AbstractTracingEngine implements TracingWithContext, Traci
      */
     private Span buildActiveSpan(final String description) {
         final Span span = this.tracer.buildSpan(description).start();
-        this.tracer.activateSpan(span);
+        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+        this.tracer.scopeManager().activate(span, true);
         updateSpanMappings(span);
         return span;
+    }
+
+    /**
+     * Stores this object in the {@code responseMappings} cache and updates {@code spanMappings} since it might span
+     * multiple threads.
+     *
+     * @param object  The object used as key for the cache entry.
+     * @param span    The span associated to the key.
+     * @param traceId The traceId to lookup in {@code spanMappings}
+     */
+    void cacheObject(final Object object, final Span span, final String traceId) {
+        if (spanIdMappings.getIfPresent(traceId) != null && !spanIdMappings.getIfPresent(traceId).peek().equals(span)) {
+            spanIdMappings.getIfPresent(traceId).push(span);
+        }
+        responseMappings.put(object, span);
+    }
+
+
+
+    @Override
+    public boolean isActive() {
+        return tracer.activeSpan() != null;
+    }
+
+    /**
+     * Returns the current active content.
+     *
+     * @return The current active context
+     */
+    @Override
+    public TraceContext<SpanContext> currentContext() {
+        if (tracer.activeSpan() != null) {
+            return new SpanTraceContext(tracer.activeSpan().context());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the current context associated to an object.
+     *
+     * @param obj The object to be used as key.
+     * @return The current context associated to the object.
+     */
+    @Override
+    public TraceContext<SpanContext> currentContextforObject(final Object obj) {
+        final Span span = responseMappings.getIfPresent(obj);
+        if (span != null) {
+            return new SpanTraceContext(span.context());
+        } else {
+            return null;
+        }
     }
 
 

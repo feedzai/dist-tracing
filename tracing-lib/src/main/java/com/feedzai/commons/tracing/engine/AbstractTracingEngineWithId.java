@@ -8,6 +8,7 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 
+import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -25,8 +26,12 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     /**
      * Maps an application specific ID that identifies a trace to the TraceId.
      */
-    private final Cache<String, String> traceIdMappings;
+    protected final Cache<String, String> traceIdMappings;
 
+    /**
+     * The key for the baggage item containing the eventID.
+     */
+    protected static final String EVENT_ID = "id";
 
     /**
      * Constructor for this abstract class to be called by the extension classes to supply the implementation specific
@@ -38,34 +43,34 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     protected AbstractTracingEngineWithId(final Tracer tracer,
                                           final CacheConfiguration configuration) {
         super(tracer, configuration);
-        this.traceIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().getNano(), TimeUnit.NANOSECONDS)
+        this.traceIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
                 .maximumSize(configuration.getMaximumSize()).build();
     }
 
     @Override
     public <R> R newTrace(final Supplier<R> toTrace, final String description, final String eventId) {
         final Span span = newTraceWithId(description, eventId);
-        return traceSafelyAndReturn(toTrace, span);
+        return traceParentSafelyAndReturn(toTrace, span);
     }
 
     @Override
     public void newTrace(final Runnable toTrace, final String description, final String eventId) {
         final Span span = newTraceWithId(description, eventId);
-        traceSafely(toTrace, span);
+        traceParentSafely(toTrace, span);
     }
 
     @Override
     public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync,
                                                   final String description, final String eventId) {
         final Span span = newTraceWithId(description, eventId);
-        return finishFutureSpan(toTraceAsync.get(), span);
+        return finishParentFutureSpan(toTraceAsync.get(), span);
     }
 
     @Override
     public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description,
                                    final String eventId) {
         final Span span = newTraceWithId(description, eventId);
-        return finishPromiseSpan(toTraceAsync.get(), span);
+        return finishParentPromiseSpan(toTraceAsync, span);
     }
 
     @Override
@@ -91,8 +96,92 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description,
                                      final String eventId) {
         final Span span = buildContextFromId(description, eventId);
-        return finishPromiseSpan(toTraceAsync.get(), span);
+
+        return finishPromiseSpan(toTraceAsync, span);
     }
+
+    @Override
+    public <R> R newProcess(final Supplier<R> toTrace, final String description, final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
+        updateSpanMappings(span);
+        final R result;
+        result = traceParentSafelyAndReturn(toTrace, span);
+        return result;
+    }
+
+    @Override
+    public void newProcess(final Runnable toTrace, final String description, final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
+        updateSpanMappings(span);
+
+        traceParentSafely(toTrace, span);
+    }
+
+    @Override
+    public CompletableFuture newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+                                              final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
+        updateSpanMappings(span);
+
+        return finishParentFutureSpan(toTrace.get(), span);
+    }
+
+    @Override
+    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description, final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
+        updateSpanMappings(span);
+        return finishParentPromiseSpan(toTrace, span);
+    }
+
+    @Override
+    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                             final String description,
+                                             final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        responseMappings.put(object, span);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync, final Object object,
+                                             final String description,
+                                             final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        responseMappings.put(object, span);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description,
+                               final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        final String traceId = getTraceIdFromSpan(span);
+        cacheObject(object, span, traceId);
+        toTraceAsync.run();
+    }
+
+    @Override
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description,
+                                final String eventId) {
+        final Span span = buildContextFromId(description, eventId);
+        final String traceId = getTraceIdFromSpan(span);
+        cacheObject(value, span, traceId);
+        return toTraceAsync.get();
+    }
+
+    @Override
+    public void closeOpen(final Object object) {
+        final Span span = responseMappings.getIfPresent(object);
+        if (span != null) {
+            span.finish();
+            spanIdMappings.getIfPresent(getTraceIdFromSpan(span)).remove(span);
+        }
+    }
+
 
     /**
      * Creates a new Span as child of the context associated with {@code eventId}.
@@ -105,12 +194,14 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
         final Optional<String> traceId = getTraceIdForAppSpecificId(eventId);
         SpanContext parent = null;
         if (traceId.isPresent()) {
-            parent = super.spanIdMappings.getIfPresent(traceId.get()).context();
+            final LinkedList<Span> parentStack = super.spanIdMappings.getIfPresent(traceId.get());
+            if (!parentStack.isEmpty()) {
+                parent = parentStack.peek().context();
+            }
+        } else {
+            return tracer.buildSpan("NoParent " + description).ignoreActiveSpan().start();
         }
-        //if the parent is null this span will be orphan but no exception is thrown.
-        final Span span = buildActiveSpanAsChild(description, new SpanTraceContext(parent));
-        updateIdMappings(eventId, span);
-        return span;
+        return buildActiveSpanAsChild(description, new SpanTraceContext(parent));
     }
 
     /**
@@ -122,6 +213,7 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
      */
     private Span newTraceWithId(final String description, final String eventId) {
         final Span span = buildActiveParentSpan(description);
+        span.setBaggageItem(EVENT_ID, eventId);
         updateIdMappings(eventId, span);
         return span;
     }
@@ -151,5 +243,28 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
         this.traceIdMappings.put(eventId, getTraceIdFromSpan(span));
     }
 
+    /**
+     * Returns the current context associated to an eventId.
+     *
+     * @param eventId The application level eventId
+     * @return The current context associated to the eventId
+     */
+    public SpanTraceContext currentContextforId(final String eventId) {
+        if (spanIdMappings.getIfPresent(traceIdMappings.getIfPresent(eventId)).peek() != null) {
+            return new SpanTraceContext(spanIdMappings.getIfPresent(traceIdMappings.getIfPresent(eventId)).peek().context());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns true if a traceId has been associated to the eventId, and false otherwise.
+     *
+     * @param eventId The application level eventId.
+     * @return true if a traceId has been associated to the eventId, and false otherwise.
+     */
+    public boolean traceHasStarted(final String eventId) {
+        return traceIdMappings.getIfPresent(eventId) != null;
+    }
 
 }

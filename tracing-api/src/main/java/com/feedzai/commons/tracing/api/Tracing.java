@@ -29,7 +29,6 @@ public interface Tracing {
      */
     <R> R newTrace(Supplier<R> toTrace, String description);
 
-
     /**
      * Traces operations that do not return any values.
      *
@@ -68,6 +67,7 @@ public interface Tracing {
      */
     Promise newTracePromise(Supplier<Promise> toTraceAsync, String description);
 
+
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
      * become a child of the currently active trace context.
@@ -84,7 +84,7 @@ public interface Tracing {
 
     /**
      * Traces operations that do not return any values.
-     * 
+     *
      * <p>Similar to {@link Tracing#addToTrace(Supplier, String)} and {@link Tracing#addToTraceAsync(Supplier, String)}
      * but without returning any object.
      *
@@ -119,6 +119,13 @@ public interface Tracing {
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description);
+
+    /**
+     * Returns whether or not there is a currently active span.
+     *
+     * @return True if there is an active span, false otherwise.
+     */
+    boolean isActive();
 
 
 }

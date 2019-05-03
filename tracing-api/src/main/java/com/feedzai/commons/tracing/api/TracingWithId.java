@@ -75,6 +75,66 @@ public interface TracingWithId {
     Promise newTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
 
     /**
+     * Creates a new Span that is the root of this process's portion of the trace. Similarly to {@link
+     * TracingWithId#newTrace(Supplier, String, String)} this method creates a "root dependency",  meaning future spans
+     * can become children of this span even after it has finished. However, unlike the aforementioned method, this will
+     * become a child of the previous process's context.
+     *
+     * <p>Similar to {@link TracingWithId#newProcess(Runnable, String, String)}, {@link
+     * TracingWithId#newProcessFuture(Supplier, String, String)} and {@link TracingWithId#newProcessPromise(Supplier,
+     * String, String)} but returning what was returned by the traced code.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param eventId     The ID that represents a request throughout the whole execution.
+     * @param <R>         The return type.
+     * @return What was to be returned by the traced code.
+     */
+    <R> R newProcess(final Supplier<R> toTrace, final String description, final String eventId);
+
+    /**
+     * Creates a new Span that is the root of this process's portion of the trace.
+     *
+     * <p>Similar to {@link TracingWithId#newProcess(Supplier, String, String)}, {@link
+     * TracingWithId#newProcessFuture(Supplier, String, String)} and {@link TracingWithId#newProcessPromise(Supplier,
+     * String, String)} but returning what was returning nothing.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param eventId     The ID that represents a request throughout the whole execution.
+     */
+    void newProcess(final Runnable toTrace, final String description, final String eventId);
+
+    /**
+     * Creates a new Span that is the root of this process's portion of the trace.
+     *
+     * <p>Similar to {@link TracingWithId#newProcess(Supplier, String, String)}, {@link
+     * TracingWithId#newProcess(Runnable, String, String)} and {@link TracingWithId#newProcessPromise(Supplier, String,
+     * String)} but returning a CompletableFuture object.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param eventId     The ID that represents a request throughout the whole execution.
+     * @return What was to be returned by the traced code.
+     */
+    CompletableFuture newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+                                       final String eventId);
+
+    /**
+     * Creates a new Span that is the root of this process's portion of the trace.
+     *
+     * <p>Similar to {@link TracingWithId#newProcess(Supplier, String, String)}, {@link
+     * TracingWithId#newProcess(Runnable, String, String)} and {@link TracingWithId#newProcessFuture(Supplier, String,
+     * String)} but returning a Promise object.
+     *
+     * @param toTrace     The code that should be traced.
+     * @param description The description/name of the new context.
+     * @param eventId     The ID that represents a request throughout the whole execution.
+     * @return What was to be returned by the traced code.
+     */
+    Promise newProcessPromise(final Supplier<Promise> toTrace, final String description, final String eventId);
+
+    /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
      * become a child of the currently active trace context.
      *
@@ -133,5 +193,23 @@ public interface TracingWithId {
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
+
+
+
+    /**
+     * Returns the current context associated to an eventId.
+     *
+     * @param eventId The application level eventId
+     * @return The current context associated to the eventId
+     */
+    TraceContext currentContextforId(final String eventId);
+
+    /**
+     * Returns true if a traceId has been associated to the eventId, and false otherwise.
+     *
+     * @param eventId The application level eventId.
+     * @return true if a traceId has been associated to the eventId, and false otherwise.
+     */
+    boolean traceHasStarted(final String eventId);
 
 }
