@@ -1,3 +1,22 @@
+/*
+ *
+ *  * Copyright 2018 Feedzai
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *  *
+ *
+ */
+
 package com.feedzai.commons.tracing.api;
 
 import java.io.Serializable;
@@ -15,13 +34,14 @@ public interface TracingWithContext extends Tracing {
 
     /**
      * Creates a new Span that is the root of this process's portion of the trace. Similarly to {@link
-     * Tracing#newTrace(Supplier, String)} this method creates a "root dependency",  meaning future spans
-     * can become children of this span even after it has finished. However, unlike the aforementioned method, this will
-     * become a child of the previous process's context.
+     * Tracing#newTrace(Supplier, String)} this method creates a "root dependency",  meaning future spans can become
+     * children of this span even after it has finished. However, unlike the aforementioned method, this will become a
+     * child of the previous process's context.
      *
      * <p>Similar to {@link TracingWithContext#newProcess(Runnable, String, TraceContext)}, {@link
-     * TracingWithContext#newProcessFuture(Supplier, String, TraceContext)} and {@link TracingWithContext#newProcessPromise(Supplier,
-     * String, TraceContext)} but returning what was returned by the traced code.
+     * TracingWithContext#newProcessFuture(Supplier, String, TraceContext)} and {@link
+     * TracingWithContext#newProcessPromise(Supplier, String, TraceContext)} but returning what was returned by the
+     * traced code.
      *
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
@@ -35,8 +55,8 @@ public interface TracingWithContext extends Tracing {
      * Creates a new Span that is the root of this process's portion of the trace.
      *
      * <p>Similar to {@link TracingWithContext#newProcess(Supplier, String, TraceContext)}, {@link
-     * TracingWithContext#newProcessFuture(Supplier, String, TraceContext)} and {@link TracingWithContext#newProcessPromise(Supplier,
-     * String, TraceContext)} but returning what was returning nothing.
+     * TracingWithContext#newProcessFuture(Supplier, String, TraceContext)} and {@link
+     * TracingWithContext#newProcessPromise(Supplier, String, TraceContext)} but returning what was returning nothing.
      *
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
@@ -48,29 +68,32 @@ public interface TracingWithContext extends Tracing {
      * Creates a new Span that is the root of this process's portion of the trace.
      *
      * <p>Similar to {@link TracingWithContext#newProcess(Supplier, String, TraceContext)}, {@link
-     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessPromise(Supplier, String,
-     * TraceContext)} but returning a CompletableFuture object.
+     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessPromise(Supplier,
+     * String, TraceContext)} but returning a CompletableFuture object.
      *
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
      * @param context     The context that should be this span's parent
+     * @return The instrumented Promise.
      */
-    void newProcessPromise(final Supplier<Promise> toTrace, final String description,
-                           final TraceContext context);
+    Promise newProcessPromise(final Supplier<Promise> toTrace, final String description,
+                              final TraceContext context);
 
     /**
      * Creates a new Span that is the root of this process's portion of the trace.
      *
      * <p>Similar to {@link TracingWithContext#newProcess(Supplier, String, TraceContext)}, {@link
-     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessFuture(Supplier, String,
-     * TraceContext)} but returning a Promise object.
+     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessFuture(Supplier,
+     * String, TraceContext)} but returning a Promise object.
      *
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
      * @param context     The context that should be this span's parent
+     * @param <R>         The type returned by the future.
+     * @return The instrumented future.
      */
-    void newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
-                          final TraceContext context);
+    <R> CompletableFuture<R> newProcessFuture(final Supplier<CompletableFuture<R>> toTrace, final String description,
+                                              final TraceContext context);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -135,7 +158,6 @@ public interface TracingWithContext extends Tracing {
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, TraceContext context);
-
 
 
     /**

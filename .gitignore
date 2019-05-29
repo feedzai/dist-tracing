@@ -18,3 +18,7 @@ samples/
 *.zip
 dependency-reduced-pom.xml
 pom.xml.b
+.gnupg/S*
+.gnupg/.gpg-v21-migrated
+.gnupg/trustdb.gpg
+.gnupg/private-keys-v1.d

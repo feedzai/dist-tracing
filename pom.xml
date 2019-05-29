@@ -1,21 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--
+  ~ /*
+  ~  * Copyright 2018 Feedzai
+  ~  *
+  ~  * Licensed under the Apache License, Version 2.0 (the "License");
+  ~  * you may not use this file except in compliance with the License.
+  ~  * You may obtain a copy of the License at
+  ~  *
+  ~  *     http://www.apache.org/licenses/LICENSE-2.0
+  ~  *
+  ~  * Unless required by applicable law or agreed to in writing, software
+  ~  * distributed under the License is distributed on an "AS IS" BASIS,
+  ~  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  * See the License for the specific language governing permissions and
+  ~  * limitations under the License.
+  ~  *
+  ~  */
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.feedzai.commons.tracing</groupId>
     <artifactId>tracing</artifactId>
-    <version>0.0.0-SNAPSHOT</version>
+    <version>0.0.0</version>
     <packaging>pom</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- dependencies -->
-        <maven-tiles.version>3.7.0</maven-tiles.version>
 
         <!-- Maven plugins. -->
         <maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
         <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
-        <tiles-maven-plugin.version>2.10</tiles-maven-plugin.version>
         <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
         <opentracing.version>0.31.0</opentracing.version>
         <guava.version>18.0</guava.version>
@@ -23,63 +41,137 @@
         <jaeger.version>0.34.0</jaeger.version>
     </properties>
 
+    <name>Tracing Library</name>
+    <description>Group of modules related with the Tracing Library</description>
+    <url>https://github.com/GoncaloGarcia/DistTracing</url>
+
+    <organization>
+        <name>Feedzai</name>
+        <url>https://www.feedzai.com</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/GoncaloGarcia/DistTracing/issues</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/feedzai/feedzai-openml</url>
+        <developerConnection>scm:git:git@github.com:GoncaloGarcia/DistTracing.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Gonçalo Garcia</name>
+            <organization>Feedzai</organization>
+            <url>https://github.com/GoncaloGarcia/DistTracing/issues</url>
+        </developer>
+    </developers>
+
+
     <modules>
         <module>site</module>
         <module>tracing-api</module>
         <module>tracing-lib</module>
         <module>tracing-lib-jaeger</module>
+        <module>tracing-lib-noop</module>
     </modules>
-
-    <scm>
-        <url>https://gitlab.feedzai.com/commons/tracing</url>
-    </scm>
-
 
     <build>
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>${maven-resources-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <extensions>true</extensions>
-                    <groupId>io.repaint.maven</groupId>
-                    <artifactId>tiles-maven-plugin</artifactId>
-                    <version>${tiles-maven-plugin.version}</version>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.7.0</version>
                     <configuration>
-                        <tiles>
-                            <tile>com.feedzai.commons.maven-tiles:maven-tiles-facets-internal:${maven-tiles.version}
-                            </tile>
-                        </tiles>
+                        <source>1.8</source>
+                        <target>1.8</target>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>${maven-jar-plugin.version}</version>
+                    <version>3.0.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
             <plugin>
-                <groupId>io.repaint.maven</groupId>
-                <artifactId>tiles-maven-plugin</artifactId>
-                <inherited>false</inherited>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.0</version>
                 <configuration>
-                    <tiles>
-                        <tile>com.feedzai.commons.maven-tiles:maven-tiles-facets-root:${maven-tiles.version}</tile>
-                    </tiles>
+                    <source>8</source>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
+
+
     </build>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.opentracing</groupId>
+                <artifactId>opentracing-mock</artifactId>
+                <version>0.31.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>io.opentracing</groupId>
                 <artifactId>opentracing-api</artifactId>
@@ -121,15 +213,63 @@
         </dependencies>
     </dependencyManagement>
 
-    <distributionManagement>
-        <repository>
-            <id>commons-releases</id>
-            <url>https://maven.feedzai.com/content/repositories/commons-releases/</url>
-        </repository>
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <gpg.executable>gpg</gpg.executable>
+                <gpg.keyname>${env.PGP_KEY_ID}</gpg.keyname>
+                <gpg.passphrase>${env.PGP_PASS}</gpg.passphrase>
+                <gpg.defaultKeyring>false</gpg.defaultKeyring>
+                <gpg.homedir>${user.dir}/.gnupg</gpg.homedir>
+            </properties>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
+    <distributionManagement>
         <snapshotRepository>
-            <id>commons-snapshots</id>
-            <url>https://maven.feedzai.com/content/repositories/commons-snapshots/</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
     </distributionManagement>
+
 </project>

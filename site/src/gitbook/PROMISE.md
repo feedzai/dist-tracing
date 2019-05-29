@@ -7,8 +7,8 @@ Tracing calls to Promises does not allow us to capture the full duration of the 
 Since different systems can implement their own promise classes we provide a simple interface that can be implemented by the traced systems in order to make their Promise implementations compatible with our tracing API.
 
 The interface has two simple methods:
-* `Promise#OnComplete(Function<Promise, Promise>)` that executes if the promise completes successfully.
-* `Promise#OnError(Function<Promise, Promise>)` that executes if the promise completes exceptionally.
+* `Promise#OnComplete(Consumer<Promise>)` that executes if the promise completes successfully.
+* `Promise#OnError(Consumer<Promise>)` that executes if the promise completes exceptionally.
 
 These methods allow us to pass a function that takes a promise as argument and returns it, which closes the span whenever it should be completed.
 

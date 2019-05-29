@@ -1,3 +1,22 @@
+/*
+ *
+ *  * Copyright 2018 Feedzai
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *  *
+ *
+ */
+
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
@@ -37,7 +56,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     /**
      * Maps a traceID to the span that currently represents its point in the execution.
      */
-    final Cache<String, LinkedList<Span>> spanIdMappings;
+    protected final Cache<String, LinkedList<Span>> spanIdMappings;
 
     /**
      * Maps a uniquely identifying object to an open span.
@@ -70,6 +89,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     @Override
     public <R> R newProcess(final Supplier<R> toTrace, final String description, final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
 
         final R result;
@@ -80,26 +100,29 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     @Override
     public void newProcess(final Runnable toTrace, final String description, final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
 
         traceParentSafely(toTrace, span);
     }
 
     @Override
-    public void newProcessPromise(final Supplier<Promise> toTrace, final String description,
+    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description,
                                   final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
 
-        finishParentPromiseSpan(toTrace, span);
+        return finishParentPromiseSpan(toTrace, span);
     }
 
     @Override
-    public void newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+    public <R> CompletableFuture<R> newProcessFuture(final Supplier<CompletableFuture<R>> toTrace, final String description,
                                  final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
-        finishParentFutureSpan(toTrace.get(), span);
+        return finishParentFutureSpan(toTrace.get(), span);
     }
 
     @Override
@@ -257,6 +280,15 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
         return finishPromiseSpan(toTraceAsync, span);
     }
 
+    @Override
+    public void closeOpen(final Object object) {
+        final Span span = responseMappings.getIfPresent(object != null ? object : new Object());
+        if (span != null) {
+            span.finish();
+            popSpanForTraceId(span);
+        }
+    }
+
 
     /**
      * Finishes span after the {@link CompletableFuture} has completed, either successfully or exceptionally.
@@ -271,14 +303,14 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     <R> CompletableFuture<R> finishFutureSpan(final CompletableFuture<R> toTraceAsync, final Span span) {
         toTraceAsync.handle((future, exception) -> {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
+            tracer.scopeManager().active().close();
             return future;
         });
         return toTraceAsync;
     }
 
-    private void popSpanForTraceId(final Span span) {
+    protected void popSpanForTraceId(final Span span) {
         final LinkedList<Span> cached = spanIdMappings.getIfPresent(getTraceIdFromSpan(span));
         if (cached != null) {
             cached.remove(span);
@@ -316,11 +348,9 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     Promise finishPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         }).onErrorPromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         });
     }
@@ -337,10 +367,8 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     Promise finishParentPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
         }).onErrorPromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
         });
     }
 
@@ -361,7 +389,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             result = toTrace.get();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         }
         return result;
@@ -384,7 +411,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             result = toTrace.get();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
         }
         return result;
     }
@@ -403,7 +429,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             toTrace.run();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         }
     }
@@ -422,7 +447,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             toTrace.run();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
         }
     }
 
@@ -435,7 +459,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * @return The new active Span.
      */
     private Span buildSpanFromAsyncContext(final String description, final SpanTraceContext context) {
-        final Span span = this.tracer.buildSpan(description).asChildOf(context.get()).start();
+        final Span span = this.tracer.buildSpan(description).ignoreActiveSpan().asChildOf(context != null ? context.get() : null).start();
         span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
         this.tracer.scopeManager().activate(span, true);
         updateSpanMappings(span);
