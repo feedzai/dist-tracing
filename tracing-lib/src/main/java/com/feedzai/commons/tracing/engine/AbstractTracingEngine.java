@@ -1,3 +1,22 @@
+/*
+ *
+ *  * Copyright 2018 Feedzai
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *  *
+ *
+ */
+
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
@@ -70,6 +89,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     @Override
     public <R> R newProcess(final Supplier<R> toTrace, final String description, final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
 
         final R result;
@@ -80,26 +100,29 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     @Override
     public void newProcess(final Runnable toTrace, final String description, final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
 
         traceParentSafely(toTrace, span);
     }
 
     @Override
-    public void newProcessPromise(final Supplier<Promise> toTrace, final String description,
+    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description,
                                   final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
 
-        finishParentPromiseSpan(toTrace, span);
+        return finishParentPromiseSpan(toTrace, span);
     }
 
     @Override
-    public void newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+    public <R> CompletableFuture<R> newProcessFuture(final Supplier<CompletableFuture<R>> toTrace, final String description,
                                  final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
+        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
-        finishParentFutureSpan(toTrace.get(), span);
+        return finishParentFutureSpan(toTrace.get(), span);
     }
 
     @Override
@@ -278,7 +301,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
         return toTraceAsync;
     }
 
-    private void popSpanForTraceId(final Span span) {
+    protected void popSpanForTraceId(final Span span) {
         final LinkedList<Span> cached = spanIdMappings.getIfPresent(getTraceIdFromSpan(span));
         if (cached != null) {
             cached.remove(span);
@@ -435,7 +458,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * @return The new active Span.
      */
     private Span buildSpanFromAsyncContext(final String description, final SpanTraceContext context) {
-        final Span span = this.tracer.buildSpan(description).asChildOf(context.get()).start();
+        final Span span = this.tracer.buildSpan(description).ignoreActiveSpan().asChildOf(context != null ? context.get() : null).start();
         span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
         this.tracer.scopeManager().activate(span, true);
         updateSpanMappings(span);

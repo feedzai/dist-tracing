@@ -1,3 +1,22 @@
+/*
+ *
+ *  * Copyright 2018 Feedzai
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *     http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *  *
+ *
+ */
+
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.TraceContext;
@@ -50,7 +69,6 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
     private static final String UBERCTX_ID = "uberctx-id";
 
 
-
     /**
      * Constructor for this abstract class to be called by the extension classes to supply the implementation specific
      * parameters.
@@ -63,17 +81,63 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
         super(tracer, configuration);
     }
 
+    /**
+     * Tracer.
+     *
+     * @return Tracer.
+     */
+    public Tracer getTracer() {
+        return super.tracer;
+    }
+
+    /**
+     * Tracer.
+     *
+     * @return Tracer.
+     */
+    public Span currentSpan() {
+        return tracer.activeSpan();
+    }
+
+    /**
+     * Tracer.
+     *
+     * @param eventId A.
+     * @param span    B.
+     */
+    public void mapEventId(final String eventId, final Span span) {
+        traceIdMappings.put(eventId, getTraceIdFromSpan(span));
+    }
+
 
     @Override
     public Serializable serializeContext() {
         final HashMap<String, String> map = new HashMap<>();
-        GlobalTracer.get().inject(GlobalTracer.get().activeSpan().context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
-        map.put("span", GlobalTracer.get().activeSpan().toString());
+        if (GlobalTracer.isRegistered() && GlobalTracer.get().activeSpan() != null) {
+            GlobalTracer.get().inject(GlobalTracer.get().activeSpan().context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
+        }
+        return map;
+    }
+
+    /**
+     * Tracer.
+     *
+     * @param id A.
+     * @return Result.
+     */
+    public Serializable serializeContextForId(final String id) {
+        final HashMap<String, String> map = new HashMap<>();
+        if (GlobalTracer.isRegistered() && traceIdMappings.getIfPresent(id) != null) {
+            GlobalTracer.get().inject(
+                    spanIdMappings.getIfPresent(traceIdMappings.getIfPresent(id)).peek().context(),
+                    Format.Builtin.TEXT_MAP, implementTextMap(map));
+        }
         return map;
     }
 
     /**
      * Returns an implementation of Jaeger's TextMap.
+     *
      * @param map The map that should be turned into a {@link TextMap}
      * @return the TextMap object
      */
@@ -103,15 +167,16 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
             public Iterator<Map.Entry<String, String>> iterator() {
                 return textMap.entrySet().iterator();
             }
+
             @Override
             public void put(final String key, final String value) {
             }
         });
-        final String traceId = textMap.get(UBER_TRACE_ID).split(":")[0];
-        if (((JaegerSpanContext) context).getBaggageItem(EVENT_ID) == null) {
+        final String traceId = (textMap.get(UBER_TRACE_ID) != null ? textMap.get(UBER_TRACE_ID) : "").split(":")[0];
+        if (context == null) {
             //This is okay because creating a span as child of null creates an orphan span and does not throw an NPE.
             return new SpanTraceContext(null);
-        } else {
+        } else if (((JaegerSpanContext) context).getBaggageItem(EVENT_ID) != null) {
             traceIdMappings.put(((JaegerSpanContext) context).getBaggageItem(EVENT_ID), traceId);
             spanIdMappings.put(traceId, new LinkedList<>());
         }
@@ -120,7 +185,7 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
 
 
     @Override
-     protected String getTraceIdFromSpan(final Span span) {
+    protected String getTraceIdFromSpan(final Span span) {
         final HashMap<String, String> map = new HashMap<>();
         GlobalTracer.get().inject(span.context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
         return map.get(UBER_TRACE_ID).split(":")[0];
@@ -211,6 +276,7 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
             this.cacheDuration = cacheDuration;
             return this;
         }
+
 
         /**
          * Sets the value of the {@code cacheMaxSize} parameter for this {@link JaegerTracingEngine} instance.

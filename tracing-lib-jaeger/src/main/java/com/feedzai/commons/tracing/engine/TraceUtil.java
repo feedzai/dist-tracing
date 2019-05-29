@@ -19,35 +19,37 @@
 
 package com.feedzai.commons.tracing.engine;
 
-
-import com.feedzai.commons.tracing.api.TraceContext;
-import io.opentracing.SpanContext;
-
 /**
- * Implements {@link TraceContext} parametrized with {@link SpanContext} in order to be used with the OpenTracing @see
- * <a href="https://opentracing.io/">https://opentracing.io/</a> implementation of {@link
- * com.feedzai.commons.tracing.api.Tracing}.
+ * Singleton that holds an engine of the tracing engine to be shared.
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public class SpanTraceContext implements TraceContext<SpanContext> {
+public class TraceUtil {
+
 
     /**
-     * The context encapsulated by this class.
+     * The tracer engine.
      */
-    private final SpanContext span;
+    private static JaegerTracingEngine engine;
+
+    private TraceUtil(){}
 
     /**
-     * The constructor for this class.
-     * @param span The context encapsulated by this class
+     * Initiates the tracing engine.
+     *
+     * @param engine The engine.
      */
-    public SpanTraceContext(final SpanContext span) {
-        this.span = span;
+    public static void init(final JaegerTracingEngine engine) {
+        TraceUtil.engine = engine;
     }
 
-    @Override
-    public SpanContext get() {
-        return span;
+    /**
+     * Obtains the engine.
+     *
+     * @return the engine.
+     */
+    public static JaegerTracingEngine instance() {
+        return engine;
     }
 
 }

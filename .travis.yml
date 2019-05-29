@@ -3,3 +3,9 @@ language: java
 branches:
   only:
     - master
+    - /^\d+\.\d+(\.\d+)?(-\S*)?$/
+deploy:
+  provider: script
+  script: deploy/deploy.sh
+  on:
+    tags: true
