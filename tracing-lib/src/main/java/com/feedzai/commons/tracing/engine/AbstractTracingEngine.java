@@ -280,6 +280,15 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
         return finishPromiseSpan(toTraceAsync, span);
     }
 
+    @Override
+    public void closeOpen(final Object object) {
+        final Span span = responseMappings.getIfPresent(object != null ? object : new Object());
+        if (span != null) {
+            span.finish();
+            popSpanForTraceId(span);
+        }
+    }
+
 
     /**
      * Finishes span after the {@link CompletableFuture} has completed, either successfully or exceptionally.
@@ -294,8 +303,8 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     <R> CompletableFuture<R> finishFutureSpan(final CompletableFuture<R> toTraceAsync, final Span span) {
         toTraceAsync.handle((future, exception) -> {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
+            tracer.scopeManager().active().close();
             return future;
         });
         return toTraceAsync;
@@ -339,11 +348,9 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     Promise finishPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         }).onErrorPromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         });
     }
@@ -360,10 +367,8 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     Promise finishParentPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
         }).onErrorPromise(x -> {
             span.finish();
-            tracer.scopeManager().active().close();
         });
     }
 
@@ -384,7 +389,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             result = toTrace.get();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         }
         return result;
@@ -407,7 +411,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             result = toTrace.get();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
         }
         return result;
     }
@@ -426,7 +429,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             toTrace.run();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
             popSpanForTraceId(span);
         }
     }
@@ -445,7 +447,6 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
             toTrace.run();
         } finally {
             span.finish();
-            tracer.scopeManager().active().close();
         }
     }
 

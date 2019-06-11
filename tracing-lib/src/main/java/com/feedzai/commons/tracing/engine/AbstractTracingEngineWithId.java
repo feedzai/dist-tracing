@@ -193,14 +193,7 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
         return toTraceAsync.get();
     }
 
-    @Override
-    public void closeOpen(final Object object) {
-        final Span span = responseMappings.getIfPresent(object != null ? object : new Object());
-        if (span != null) {
-            span.finish();
-            popSpanForTraceId(span);
-        }
-    }
+
 
 
     /**
