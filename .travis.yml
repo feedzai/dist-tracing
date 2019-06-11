@@ -4,6 +4,13 @@ branches:
   only:
     - master
     - /^\d+\.\d+(\.\d+)?(-\S*)?$/
+
+script:
+  - mvn test -B
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
 deploy:
   provider: script
   script: deploy/deploy.sh
