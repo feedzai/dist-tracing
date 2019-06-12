@@ -56,7 +56,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     /**
      * Maps a traceID to the span that currently represents its point in the execution.
      */
-    final Cache<String, LinkedList<Span>> spanIdMappings;
+    protected final Cache<String, LinkedList<Span>> spanIdMappings;
 
     /**
      * Maps a uniquely identifying object to an open span.
