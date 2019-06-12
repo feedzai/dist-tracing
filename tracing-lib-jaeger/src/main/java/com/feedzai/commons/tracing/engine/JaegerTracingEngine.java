@@ -21,6 +21,7 @@ package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.TraceContext;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.jaegertracing.Configuration;
 import io.jaegertracing.internal.JaegerSpanContext;
@@ -76,6 +77,7 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
      * @param tracer        The Tracer implementation of the underlying tracing Engine.
      * @param configuration The configuration parameters for the caches.
      */
+    @VisibleForTesting
     JaegerTracingEngine(final Tracer tracer,
                         final CacheConfiguration configuration) {
         super(tracer, configuration);
@@ -187,7 +189,7 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
     @Override
     protected String getTraceIdFromSpan(final Span span) {
         final HashMap<String, String> map = new HashMap<>();
-        GlobalTracer.get().inject(span.context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
+        tracer.inject(span.context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
         return map.get(UBER_TRACE_ID).split(":")[0];
     }
 

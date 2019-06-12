@@ -19,7 +19,9 @@
 
 package com.feedzai.commons.tracing.engine;
 
+import com.feedzai.commons.tracing.api.TraceContext;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import io.opentracing.Span;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import org.junit.Assert;
@@ -150,15 +152,15 @@ public class AbstractTracingEngineWithIdTest {
         assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING), Collections.singletonList(mockTracer.finishedSpans().get(0)));
 
         tracing.addToTrace(() -> {
-            TestUtils.doStuffVoid();
+            TestUtils.doStuffWithResult();
             assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING).size(), 1);
         }, "Do More Stuff", EVENT_ID);
         assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING), Collections.singletonList(mockTracer.finishedSpans().get(0)));
         assertEquals(2, mockTracer.finishedSpans().size());
 
         CompletableFuture.runAsync(() -> tracing.addToTrace(() -> {
-            TestUtils.doStuffVoid();
             assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING).size(), 2);
+            return TestUtils.doStuffWithResult();
         }, "Do More Stuff Async", EVENT_ID)).get();
 
         assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING), Collections.singletonList(mockTracer.finishedSpans().get(0)));
@@ -305,7 +307,6 @@ public class AbstractTracingEngineWithIdTest {
         promise2.complete();
         assertEquals(3, mockTracer.finishedSpans().size());
 
-
         assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING), Collections.singletonList(mockTracer.finishedSpans().get(0)));
 
         MockSpan parent = mockTracer.finishedSpans().get(0);
@@ -321,4 +322,107 @@ public class AbstractTracingEngineWithIdTest {
         assertEquals("child_of", otherChild.references().get(0).getReferenceType());
         assertEquals(otherChild.references().get(0).getContext().spanId(), parent.context().spanId());
     }
+
+    @Test
+    public void testAddToTraceOpenSupplier() throws ExecutionException, InterruptedException {
+        MockTracer mockTracer = new MockTracer();
+        TracingEngineWithId tracing = new TracingEngineWithId(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+
+
+        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff", EVENT_ID);
+        assertNotNull(tracing.traceIdMappings.getIfPresent(EVENT_ID));
+        assertEquals(tracing.traceIdMappings.getIfPresent(EVENT_ID), TRACE_ID_STRING);
+        Assert.assertNotNull(tracing.spanIdMappings.getIfPresent(tracing.traceIdMappings.getIfPresent(EVENT_ID)));
+        assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING), Collections.singletonList(mockTracer.finishedSpans().get(0)));
+
+        MockSpan parent = mockTracer.finishedSpans().get(0);
+        assertTrue(parent.references().isEmpty());
+
+        CompletableFuture.runAsync(() -> {
+            Object obj = new Object();
+            tracing.addToTraceOpen(TestUtils::doStuffWithResult, obj, "Do More Stuff", EVENT_ID);
+            assertEquals(1, mockTracer.finishedSpans().size());
+
+            tracing.closeOpen(obj);
+            assertEquals(2, mockTracer.finishedSpans().size());
+        }).get();
+
+        MockSpan child = mockTracer.finishedSpans().get(1);
+        assertEquals(1, child.references().size());
+        assertEquals("child_of", child.references().get(0).getReferenceType());
+        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+    }
+
+    @Test
+    public void testAddToTraceOpenRunnable() throws ExecutionException, InterruptedException {
+        MockTracer mockTracer = new MockTracer();
+        TracingEngineWithId tracing = new TracingEngineWithId(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+
+
+        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff", EVENT_ID);
+        assertNotNull(tracing.traceIdMappings.getIfPresent(EVENT_ID));
+        assertEquals(tracing.traceIdMappings.getIfPresent(EVENT_ID), TRACE_ID_STRING);
+        Assert.assertNotNull(tracing.spanIdMappings.getIfPresent(tracing.traceIdMappings.getIfPresent(EVENT_ID)));
+        assertEquals(tracing.spanIdMappings.getIfPresent(TRACE_ID_STRING), Collections.singletonList(mockTracer.finishedSpans().get(0)));
+
+        MockSpan parent = mockTracer.finishedSpans().get(0);
+        assertTrue(parent.references().isEmpty());
+
+        CompletableFuture.runAsync(() -> {
+            Object obj = new Object();
+            tracing.addToTraceOpen(TestUtils::doStuffVoid, obj, "Do More Stuff", EVENT_ID);
+            assertEquals(1, mockTracer.finishedSpans().size());
+
+            tracing.closeOpen(obj);
+            assertEquals(2, mockTracer.finishedSpans().size());
+        }).get();
+
+        MockSpan child = mockTracer.finishedSpans().get(1);
+        assertEquals(1, child.references().size());
+        assertEquals("child_of", child.references().get(0).getReferenceType());
+        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+    }
+
+    @Test
+    public void testCurrentContextForId() throws ExecutionException, InterruptedException {
+        MockTracer mockTracer = new MockTracer();
+        TracingEngineWithId tracing = new TracingEngineWithId(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+
+        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff", EVENT_ID);
+
+        assertEquals(tracing.currentContextforId(EVENT_ID).get(), mockTracer.finishedSpans().get(0).context());
+
+        CompletableFuture.runAsync(() -> {
+                CompletableFuture fut = CompletableFuture.runAsync(() -> {
+                    tracing.addToTrace(() -> {
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }, "Do More Stuff", EVENT_ID);
+                });
+                TraceContext span = tracing.currentContext();
+                assertEquals(tracing.currentContextforId(EVENT_ID).get(), mockTracer.finishedSpans().get(0).context());
+            try {
+                fut.get();
+                assertEquals(mockTracer.finishedSpans().get(1).context(), span.get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @Test
+    public void testTraceHasStarted() {
+        MockTracer mockTracer = new MockTracer();
+        TracingEngineWithId tracing = new TracingEngineWithId(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        assertFalse(tracing.traceHasStarted(EVENT_ID));
+        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff", EVENT_ID);
+        assertTrue(tracing.traceHasStarted(EVENT_ID));
+    }
+
+
 }
