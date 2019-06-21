@@ -84,16 +84,16 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
     }
 
     /**
-     * Tracer.
+     * Returns the tracer object of the underlying OpenTracing implementation
      *
-     * @return Tracer.
+     * @return the tracer.
      */
     public Tracer getTracer() {
         return super.tracer;
     }
 
     /**
-     * Tracer.
+     * Returns the span that represents the current thread-local context.
      *
      * @return Tracer.
      */
@@ -102,10 +102,10 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
     }
 
     /**
-     * Tracer.
+     * Maps an app-specific eventId to the span corresponding to it's correct context.
      *
-     * @param eventId A.
-     * @param span    B.
+     * @param eventId The application specific eventID.
+     * @param span    The span that represents the current context.
      */
     public void mapEventId(final String eventId, final Span span) {
         traceIdMappings.put(eventId, getTraceIdFromSpan(span));
