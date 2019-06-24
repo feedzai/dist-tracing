@@ -39,20 +39,20 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
 
     @Override
-    public <R> Promise addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description) {
-        double start = System.nanoTime();
-        Promise result = toTraceAsync.get().onCompletePromise(promise -> {
+    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                             final String description) {
+        final double start = System.nanoTime();
+        final Promise result = toTraceAsync.get().onCompletePromise(promise -> {
             logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
         });
         return result;
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceOpenFuture(Supplier<CompletableFuture<R>> toTraceAsync,
-                                                         Object object, String description) {
-        double start = System.nanoTime();
-        CompletableFuture<R> result = toTraceAsync.get();
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object, final String description) {
+        final double start = System.nanoTime();
+        final CompletableFuture<R> result = toTraceAsync.get();
         result.handle((f, t) -> {
             logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
             return this;
@@ -61,36 +61,36 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public void addToTraceOpen(Runnable toTraceAsync, Object object, String description) {
-        double start = System.nanoTime();
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description) {
+        final double start = System.nanoTime();
         toTraceAsync.run();
         logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
     }
 
     @Override
-    public <R> R addToTraceOpen(Supplier<R> toTraceAsync, Object value, String description) {
-        double start = System.nanoTime();
-        R result = toTraceAsync.get();
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description) {
+        final double start = System.nanoTime();
+        final R result = toTraceAsync.get();
         logger.info("Starting traced block for: {} associated to {} in {} ms", description, value, (start - System.nanoTime()) / 1000);
         return result;
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description, String eventId) {
-        double start = System.nanoTime();
-        Promise result = toTraceAsync.get().onCompletePromise(promise -> {
+    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                             final String description, final String eventId) {
+        final double start = System.nanoTime();
+        final Promise result = toTraceAsync.get().onCompletePromise(promise -> {
             logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
         });
         return result;
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceOpenFuture(Supplier<CompletableFuture<R>> toTraceAsync,
-                                                         Object object, String description,
-                                                         String eventId) {
-        double start = System.nanoTime();
-        CompletableFuture<R> result = toTraceAsync.get();
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object, final String description,
+                                                         final String eventId) {
+        final double start = System.nanoTime();
+        final CompletableFuture<R> result = toTraceAsync.get();
         result.handle((f, t) -> {
             logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
             return this;
@@ -99,43 +99,43 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public void addToTraceOpen(Runnable toTraceAsync, Object object, String description,
-                               String eventId) {
-        double start = System.nanoTime();
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description,
+                               final String eventId) {
+        final double start = System.nanoTime();
         toTraceAsync.run();
         logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
     }
 
     @Override
-    public <R> R addToTraceOpen(Supplier<R> toTraceAsync, Object value, String description,
-                                String eventId) {
-        double start = System.nanoTime();
-        R result = toTraceAsync.get();
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description,
+                                final String eventId) {
+        final double start = System.nanoTime();
+        final R result = toTraceAsync.get();
         logger.info("Starting traced block for: {} associated to {} in {} ms", description, value, (start - System.nanoTime()) / 1000);
         return result;
     }
 
     @Override
-    public void closeOpen(Object object) {
+    public void closeOpen(final Object object) {
         logger.info("Closing traced block associated to {}", object);
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description, TraceContext context) {
-        double start = System.nanoTime();
-        Promise result = toTraceAsync.get().onCompletePromise(promise -> {
+    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                             final String description, final TraceContext context) {
+        final double start = System.nanoTime();
+        final Promise result = toTraceAsync.get().onCompletePromise(promise -> {
             logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
         });
         return result;
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceOpenFuture(Supplier<CompletableFuture<R>> toTraceAsync,
-                                                         Object object, String description,
-                                                         TraceContext context) {
-        double start = System.nanoTime();
-        CompletableFuture<R> result = toTraceAsync.get();
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object, final String description,
+                                                         final TraceContext context) {
+        final double start = System.nanoTime();
+        final CompletableFuture<R> result = toTraceAsync.get();
         result.handle((f, t) -> {
             logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
             return this;
@@ -144,63 +144,63 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public void addToTraceOpen(Runnable toTraceAsync, Object object, String description,
-                               TraceContext context) {
-        double start = System.nanoTime();
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description,
+                               final TraceContext context) {
+        final double start = System.nanoTime();
         toTraceAsync.run();
         logger.info("Starting traced block for: {} associated to {} in {} ms", description, object, (start - System.nanoTime()) / 1000);
 
     }
 
     @Override
-    public <R> R addToTraceOpen(Supplier<R> toTraceAsync, Object value, String description,
-                                TraceContext context) {
-        double start = System.nanoTime();
-        R result = toTraceAsync.get();
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description,
+                                final TraceContext context) {
+        final double start = System.nanoTime();
+        final R result = toTraceAsync.get();
         logger.info("Starting traced block for: {} associated to {} in {} ms", description, value, (start - System.nanoTime()) / 1000);
         return result;
     }
 
     @Override
-    public <R> R newProcess(Supplier<R> toTrace, String description, TraceContext context) {
-        double start = System.nanoTime();
+    public <R> R newProcess(final Supplier<R> toTrace, final String description, final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public void newProcess(Runnable toTrace, String description, TraceContext context) {
-        double start = System.nanoTime();
+    public void newProcess(final Runnable toTrace, final String description, final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         toTrace.run();
     }
 
     @Override
-    public Promise newProcessPromise(Supplier<Promise> toTrace, String description,
-                                     TraceContext context) {
-        double start = System.nanoTime();
+    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description,
+                                     final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public <R> CompletableFuture<R> newProcessFuture(Supplier<CompletableFuture<R>> toTrace,
-                                                     String description, TraceContext context) {
-        double start = System.nanoTime();
+    public <R> CompletableFuture<R> newProcessFuture(final Supplier<CompletableFuture<R>> toTrace,
+                                                     final String description, final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public <R> R addToTrace(Supplier<R> toTrace, String description, TraceContext context) {
-        double start = System.nanoTime();
+    public <R> R addToTrace(final Supplier<R> toTrace, final String description, final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public void addToTrace(Runnable toTrace, String description, TraceContext context) {
-        double start = System.nanoTime();
+    public void addToTrace(final Runnable toTrace, final String description, final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
 
         toTrace.run();
@@ -208,16 +208,16 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                                    TraceContext context) {
-        double start = System.nanoTime();
+    public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description,
+                                                    final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, TraceContext context) {
-        double start = System.nanoTime();
+    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description, final TraceContext context) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
@@ -228,7 +228,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public TraceContext deserializeContext(Serializable headers) {
+    public TraceContext deserializeContext(final Serializable headers) {
         return new TraceContext() {
             @Override
             public Object get() {
@@ -243,64 +243,64 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public TraceContext currentContextforObject(Object obj) {
+    public TraceContext currentContextforObject(final Object obj) {
         return null;
     }
 
     @Override
-    public <R> R newTrace(Supplier<R> toTrace, String description) {
-        double start = System.nanoTime();
+    public <R> R newTrace(final Supplier<R> toTrace, final String description) {
+        final double start = System.nanoTime();
         logger.info("New Trace {}", description);
         return toTrace.get();
     }
 
     @Override
-    public void newTrace(Runnable toTrace, String description) {
-        double start = System.nanoTime();
+    public void newTrace(final Runnable toTrace, final String description) {
+        final double start = System.nanoTime();
         logger.info("New Trace {}, duration {}", description, (start - System.nanoTime()) / 1000);
         toTrace.run();
 
     }
 
     @Override
-    public <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description) {
-        double start = System.nanoTime();
+    public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description) {
+        final double start = System.nanoTime();
         logger.info("New Trace {}, duration {}", description, (start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public Promise newTracePromise(Supplier<Promise> toTraceAsync, String description) {
-        double start = System.nanoTime();
+    public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
+        final double start = System.nanoTime();
         logger.info("New Trace {}, duration {}", description, (start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public <R> R addToTrace(Supplier<R> toTrace, String description) {
-        double start = System.nanoTime();
+    public <R> R addToTrace(final Supplier<R> toTrace, final String description) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public void addToTrace(Runnable toTrace, String description) {
-        double start = System.nanoTime();
+    public void addToTrace(final Runnable toTrace, final String description) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         toTrace.run();
 
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description) {
-        double start = System.nanoTime();
+    public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description) {
-        double start = System.nanoTime();
+    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
@@ -311,95 +311,95 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public <R> R newTrace(Supplier<R> toTrace, String description, String eventId) {
-        double start = System.nanoTime();
+    public <R> R newTrace(final Supplier<R> toTrace, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public void newTrace(Runnable toTrace, String description, String eventId) {
-        double start = System.nanoTime();
+    public void newTrace(final Runnable toTrace, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         toTrace.run();
 
     }
 
     @Override
-    public <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                                  String eventId) {
-        double start = System.nanoTime();
+    public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description,
+                                                  final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public Promise newTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId) {
-        double start = System.nanoTime();
+    public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public <R> R newProcess(Supplier<R> toTrace, String description, String eventId) {
-        double start = System.nanoTime();
+    public <R> R newProcess(final Supplier<R> toTrace, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public void newProcess(Runnable toTrace, String description, String eventId) {
-        double start = System.nanoTime();
+    public void newProcess(final Runnable toTrace, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         toTrace.run();
     }
 
     @Override
-    public CompletableFuture newProcessFuture(Supplier<CompletableFuture> toTrace, String description,
-                                              String eventId) {
-        double start = System.nanoTime();
+    public CompletableFuture newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+                                              final String eventId) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public Promise newProcessPromise(Supplier<Promise> toTrace, String description, String eventId) {
-        double start = System.nanoTime();
+    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public <R> R addToTrace(Supplier<R> toTrace, String description, String eventId) {
-        double start = System.nanoTime();
+    public <R> R addToTrace(final Supplier<R> toTrace, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTrace.get();
     }
 
     @Override
-    public void addToTrace(Runnable toTrace, String description, String eventId) {
-        double start = System.nanoTime();
+    public void addToTrace(final Runnable toTrace, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         toTrace.run();
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                                    String eventId) {
-        double start = System.nanoTime();
+    public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description,
+                                                    final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId) {
-        double start = System.nanoTime();
+    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description, final String eventId) {
+        final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
     }
 
     @Override
-    public TraceContext currentContextforId(String eventId) {
+    public TraceContext currentContextforId(final String eventId) {
         return new TraceContext() {
             @Override
             public Object get() {
@@ -409,7 +409,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public boolean traceHasStarted(String eventId) {
+    public boolean traceHasStarted(final String eventId) {
         return true;
     }
 }
