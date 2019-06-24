@@ -117,7 +117,7 @@ public class TracingEngine extends AbstractTracingEngine {
     }
 
     @Override
-    public CompletableFuture newProcessFuture(Supplier<CompletableFuture> toTrace, String description,
+    public <R> CompletableFuture<R> newProcessFuture(Supplier<CompletableFuture<R>> toTrace, String description,
                                               String eventId) {
         return null;
     }

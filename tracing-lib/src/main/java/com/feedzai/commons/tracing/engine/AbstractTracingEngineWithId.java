@@ -139,7 +139,7 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     }
 
     @Override
-    public CompletableFuture newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+    public <R> CompletableFuture<R> newProcessFuture(final Supplier<CompletableFuture<R>> toTrace, final String description,
                                               final String eventId) {
         final Span span = buildContextFromId(description, eventId);
         spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());

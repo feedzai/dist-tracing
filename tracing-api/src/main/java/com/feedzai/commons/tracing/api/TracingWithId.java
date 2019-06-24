@@ -136,7 +136,7 @@ public interface TracingWithId {
      * @param eventId     The ID that represents a request throughout the whole execution.
      * @return What was to be returned by the traced code.
      */
-    CompletableFuture newProcessFuture(final Supplier<CompletableFuture> toTrace, final String description,
+    <R> CompletableFuture newProcessFuture(final Supplier<CompletableFuture<R>> toTrace, final String description,
                                        final String eventId);
 
     /**

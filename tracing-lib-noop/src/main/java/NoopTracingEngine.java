@@ -260,7 +260,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public CompletableFuture newProcessFuture(Supplier<CompletableFuture> toTrace, String description,
+    public <R> CompletableFuture<R> newProcessFuture(Supplier<CompletableFuture<R>> toTrace, String description,
                                               String eventId) {
         return toTrace.get();
     }
