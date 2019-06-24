@@ -27,9 +27,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+
+/**
+ * Implementation of all Tracing APIs that, instead of building an actual trace, simply logs calls to disk.
+ *
+ * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
+ */
 public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
 
 
@@ -37,6 +42,17 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
      * The logger.
      */
     static final Logger logger = LoggerFactory.getLogger(LoggingTracingEngine.class.getName());
+
+    /**
+     * Null trace context to be used wherever is needed, since the logs won't take into account the causality between
+     * calls.
+     */
+    public static final TraceContext TRACE_CONTEXT = new TraceContext() {
+        @Override
+        public Object get() {
+            return null;
+        }
+    };
 
 
     @Override
@@ -118,7 +134,6 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
     @Override
     public void closeOpen(final Object object) {
-        logger.info("Closing traced block associated to {}", object);
     }
 
     @Override
@@ -192,7 +207,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                                      final String description, final TraceContext context) {
         final double start = System.nanoTime();
         final CompletableFuture<R> result = toTrace.get();
-        result.handle((f,t) -> {
+        result.handle((f, t) -> {
             logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
             return this;
         });
@@ -220,7 +235,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                                     final TraceContext context) {
         final double start = System.nanoTime();
         final CompletableFuture<R> future = toTraceAsync.get();
-        future.handle((f,t) -> {
+        future.handle((f, t) -> {
             logger.info("Add To Trace {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
             return this;
         });
@@ -244,22 +259,17 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
     @Override
     public TraceContext deserializeContext(final Serializable headers) {
-        return new TraceContext() {
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
+        return TRACE_CONTEXT;
     }
 
     @Override
     public TraceContext currentContext() {
-        return null;
+        return TRACE_CONTEXT;
     }
 
     @Override
     public TraceContext currentContextforObject(final Object obj) {
-        return null;
+        return TRACE_CONTEXT;
     }
 
     @Override
@@ -319,7 +329,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                                     final String description) {
         final double start = System.nanoTime();
         final CompletableFuture<R> result = toTraceAsync.get();
-        result.handle((f,t) -> {
+        result.handle((f, t) -> {
             logger.info("Add To Trace {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
             return this;
         });
@@ -394,11 +404,12 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public <R> CompletableFuture newProcessFuture(final Supplier<CompletableFuture<R>> toTrace, final String description,
-                                              final String eventId) {
+    public <R> CompletableFuture newProcessFuture(final Supplier<CompletableFuture<R>> toTrace,
+                                                  final String description,
+                                                  final String eventId) {
         final double start = System.nanoTime();
         final CompletableFuture<R> result = toTrace.get();
-        result.handle((f,t) -> {
+        result.handle((f, t) -> {
             logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
             return this;
         });
@@ -436,7 +447,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                                     final String eventId) {
         final double start = System.nanoTime();
         final CompletableFuture<R> future = toTraceAsync.get();
-        future.handle((f,t) -> {
+        future.handle((f, t) -> {
             logger.info("Add To Trace {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
             return this;
         });
@@ -455,12 +466,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
     @Override
     public TraceContext currentContextforId(final String eventId) {
-        return new TraceContext() {
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
+        return TRACE_CONTEXT;
     }
 
     @Override

@@ -27,12 +27,27 @@ import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+/**
+ * Implementation of all Tracing APIs that does nothing so as not to affect the execution of the application.
+ *
+ * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
+ */
 public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
 
+    /**
+     * Null trace context to be used wherever is needed, since the logs won't take into account the causality between
+     * calls.
+     */
+    public static final TraceContext TRACE_CONTEXT = new TraceContext() {
+        @Override
+        public Object get() {
+            return null;
+        }
+    };
 
     @Override
     public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description) {
+                                                String description) {
         return toTraceAsync.get();
     }
 
@@ -54,7 +69,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description, String eventId) {
+                                                String description, String eventId) {
         return toTraceAsync.get();
     }
 
@@ -85,7 +100,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description, TraceContext context) {
+                                                String description, TraceContext context) {
         return toTraceAsync.get();
     }
 
@@ -122,7 +137,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public <R> Promise<R> newProcessPromise(Supplier<Promise<R>> toTrace, String description,
-                                     TraceContext context) {
+                                            TraceContext context) {
         return toTrace.get();
     }
 
@@ -150,7 +165,8 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, TraceContext context) {
+    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description,
+                                            TraceContext context) {
         return toTraceAsync.get();
     }
 
@@ -161,22 +177,17 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public TraceContext deserializeContext(Serializable headers) {
-        return new TraceContext() {
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
+        return TRACE_CONTEXT;
     }
 
     @Override
     public TraceContext currentContext() {
-        return null;
+        return TRACE_CONTEXT;
     }
 
     @Override
     public TraceContext currentContextforObject(Object obj) {
-        return null;
+        return TRACE_CONTEXT;
     }
 
     @Override
@@ -261,7 +272,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public <R> CompletableFuture<R> newProcessFuture(Supplier<CompletableFuture<R>> toTrace, String description,
-                                              String eventId) {
+                                                     String eventId) {
         return toTrace.get();
     }
 
@@ -294,12 +305,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public TraceContext currentContextforId(String eventId) {
-        return new TraceContext() {
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
+        return TRACE_CONTEXT;
     }
 
     @Override
