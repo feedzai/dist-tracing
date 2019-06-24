@@ -83,7 +83,7 @@
         <module>tracing-lib</module>
         <module>tracing-lib-jaeger</module>
         <module>tracing-lib-noop</module>
-        <module>tracing-lib-log</module>
+        <module>tracing-lib-logger</module>
     </modules>
 
     <build>
