@@ -56,7 +56,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
 
     public LoggingTracingEngine() {
-        logger.info("Probe for trace(description:STRING, timestamp:LONG, original_timestamp:LONG, latency:LONG) is ready.");
+        logger.info("Probe for trace(timestamp:LONG, original_timestamp:LONG, latency:LONG, description:STRING) is ready.");
     }
 
 
@@ -410,7 +410,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     private void logMessage(String description, double start) {
         final double end = System.nanoTime();
         final double latency = start - end;
-        logger.info("trace,{},{},{}ms", description, end, start, latency / 1000);
+        logger.info("trace,{},{},{},{}ms", end, start, latency / 1000, description);
     }
 
 }
