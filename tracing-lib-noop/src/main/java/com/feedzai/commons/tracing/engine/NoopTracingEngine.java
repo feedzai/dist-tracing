@@ -17,7 +17,7 @@
  *
  */
 
-import com.feedzai.commons.tracing.api.Promise;
+package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
 import com.feedzai.commons.tracing.api.TracingOpen;
 import com.feedzai.commons.tracing.api.TracingOpenWithContext;

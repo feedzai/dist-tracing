@@ -17,7 +17,7 @@
  *
  */
 
-import com.feedzai.commons.tracing.api.Promise;
+package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
 import com.feedzai.commons.tracing.api.TracingOpen;
 import com.feedzai.commons.tracing.api.TracingOpenWithContext;
@@ -41,7 +41,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     /**
      * The logger.
      */
-    static final Logger logger = LoggerFactory.getLogger(LoggingTracingEngine.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(LoggingTracingEngine.class.getName());
 
     /**
      * Null trace context to be used wherever is needed, since the logs won't take into account the causality between
@@ -126,6 +126,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
     @Override
     public void closeOpen(final Object object) {
+        //Empty because it does not make sense to log this
     }
 
     @Override
