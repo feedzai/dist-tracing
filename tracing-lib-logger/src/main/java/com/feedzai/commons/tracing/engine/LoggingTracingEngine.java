@@ -389,6 +389,13 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
         return logPromise(toTraceAsync, description);
     }
 
+    /**
+     * Logs the execution of a Promise.
+     * @param toTraceAsync The code to be executed.
+     * @param description A textual representation of the execution.
+     * @param <R> The return type.
+     * @return Whatever would be returned by the Promise.
+     */
     private <R> Promise<R> logPromise(Supplier<Promise<R>> toTraceAsync, String description) {
         final double start = System.nanoTime();
         final Promise<R> promise = toTraceAsync.get();
@@ -407,6 +414,11 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
         return true;
     }
 
+    /**
+     * Writes a log message in the required format.
+     * @param description A textual representation of the execution.
+     * @param start the starting timestamp of the execution.
+     */
     private void logMessage(String description, double start) {
         final double end = System.nanoTime();
         final double latency = start - end;
