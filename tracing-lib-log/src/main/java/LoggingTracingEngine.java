@@ -39,7 +39,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
 
     @Override
-    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                              final String description) {
         final double start = System.nanoTime();
         final Promise result = toTraceAsync.get().onCompletePromise(promise -> {
@@ -76,7 +76,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                              final String description, final String eventId) {
         final double start = System.nanoTime();
         final Promise result = toTraceAsync.get().onCompletePromise(promise -> {
@@ -121,7 +121,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                              final String description, final TraceContext context) {
         final double start = System.nanoTime();
         final Promise result = toTraceAsync.get().onCompletePromise(promise -> {
@@ -176,7 +176,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description,
+    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
                                      final TraceContext context) {
         final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
@@ -216,7 +216,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description, final TraceContext context) {
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description, final TraceContext context) {
         final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
@@ -270,7 +270,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
+    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
         final double start = System.nanoTime();
         logger.info("New Trace {}, duration {}", description, (start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
@@ -299,7 +299,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
         final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
@@ -334,7 +334,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description, final String eventId) {
+    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description, final String eventId) {
         final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();
@@ -363,7 +363,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description, final String eventId) {
+    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description, final String eventId) {
         final double start = System.nanoTime();
         logger.info("New Process {}, duration {} ms", description, (start - System.nanoTime()) / 1000);
         return toTrace.get();
@@ -392,7 +392,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     }
 
     @Override
-    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description, final String eventId) {
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description, final String eventId) {
         final double start = System.nanoTime();
         logger.info("Add To Trace {}, duration {} ms", description,(start - System.nanoTime()) / 1000);
         return toTraceAsync.get();

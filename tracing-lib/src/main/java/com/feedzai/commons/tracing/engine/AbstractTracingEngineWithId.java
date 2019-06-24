@@ -86,7 +86,7 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     }
 
     @Override
-    public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description,
+    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
                                    final String eventId) {
         final Span span = newTraceWithId(description, eventId);
         return finishParentPromiseSpan(toTraceAsync, span);
@@ -112,7 +112,7 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     }
 
     @Override
-    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description,
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
                                      final String eventId) {
         final Span span = buildContextFromId(description, eventId);
 
@@ -149,7 +149,7 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     }
 
     @Override
-    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description, final String eventId) {
+    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description, final String eventId) {
         final Span span = buildContextFromId(description, eventId);
         spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
@@ -157,7 +157,7 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                              final String description,
                                              final String eventId) {
         final Span span = buildContextFromId(description, eventId);

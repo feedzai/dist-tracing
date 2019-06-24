@@ -45,7 +45,7 @@ public interface TracingOpen extends Tracing {
      *                     it is time to finish it.
      * @return What was to be returned by the traced code.
      */
-    <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                       final String description);
 
     /**

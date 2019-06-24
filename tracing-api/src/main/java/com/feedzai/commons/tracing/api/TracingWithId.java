@@ -91,7 +91,7 @@ public interface TracingWithId {
      * @param eventId      The ID that represents a request throughout the whole execution.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    Promise newTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
+    <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId);
 
     /**
      * Creates a new Span that is the root of this process's portion of the trace. Similarly to {@link
@@ -151,7 +151,7 @@ public interface TracingWithId {
      * @param eventId     The ID that represents a request throughout the whole execution.
      * @return What was to be returned by the traced code.
      */
-    Promise newProcessPromise(final Supplier<Promise> toTrace, final String description, final String eventId);
+    <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description, final String eventId);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -211,7 +211,7 @@ public interface TracingWithId {
      * @param eventId      The ID that represents a request throughout the whole execution.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId);
+    <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId);
 
 
 

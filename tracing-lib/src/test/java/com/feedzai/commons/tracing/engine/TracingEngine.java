@@ -49,7 +49,7 @@ public class TracingEngine extends AbstractTracingEngine {
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
+    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
                                              String description, String eventId) {
         return null;
     }
@@ -102,7 +102,7 @@ public class TracingEngine extends AbstractTracingEngine {
     }
 
     @Override
-    public Promise newTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId) {
+    public <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
         return null;
     }
 
@@ -123,7 +123,7 @@ public class TracingEngine extends AbstractTracingEngine {
     }
 
     @Override
-    public Promise newProcessPromise(Supplier<Promise> toTrace, String description, String eventId) {
+    public <R> Promise<R> newProcessPromise(Supplier<Promise<R>> toTrace, String description, String eventId) {
         return null;
     }
 
@@ -144,7 +144,7 @@ public class TracingEngine extends AbstractTracingEngine {
     }
 
     @Override
-    public Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId) {
+    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
         return null;
     }
 

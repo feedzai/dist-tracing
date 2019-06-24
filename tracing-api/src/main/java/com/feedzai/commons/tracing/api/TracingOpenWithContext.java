@@ -51,7 +51,7 @@ public interface TracingOpenWithContext extends TracingWithContext {
      * @param context      Represents the context of the current execution.
      * @return What was to be returned by the traced code.
      */
-    <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                       final String description,
                                       final TraceContext context);
 

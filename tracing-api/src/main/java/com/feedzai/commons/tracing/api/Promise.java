@@ -36,7 +36,7 @@ public interface Promise<T> {
      * @param callOnCompletion Lambda that represents the method that should be executed upon completion
      * @return This {@link Promise}
      */
-    Promise onCompletePromise(Consumer<T> callOnCompletion);
+    Promise<T> onCompletePromise(Consumer<T> callOnCompletion);
 
     /**
      * Registers a method to be called by the {@link Promise} when the result of the computation terminates with an
@@ -46,7 +46,7 @@ public interface Promise<T> {
      *                    implementing {@link Promise}
      * @return This {@link Promise}
      */
-    Promise onErrorPromise(Consumer<Throwable> callOnError);
+    Promise<T> onErrorPromise(Consumer<Throwable> callOnError);
 
 
 
