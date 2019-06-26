@@ -39,6 +39,35 @@ To build without running tests execute:
 mvn clean install -DskipTests
 ```
 
+# Enable Logging
 
+If you're running the API backed by our LoggingTracingEngine you need to add the following to your `logback.xml`
+
+```
+ <!-- METRICS SERVER LOGGING TAG
+  <appender name="METRICS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>log/${pulse.logcontext}-metrics.log</file>
+    <encoder>
+      <pattern>%msg</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>log/${pulse.logcontext}-metrics.%d{yyyy-MM}-week-%d{WW}.log.gz</fileNamePattern>
+      <maxHistory>8</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <appender name="METRICS-ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="METRICS" />
+    <queueSize>2048</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <includeCallerData>false</includeCallerData>
+  </appender>
+
+  <logger name="com.feedzai.commons.tracing.engine.LoggingTracingEngine" level="TRACE" additivity="false">
+    <appender-ref ref="METRICS-ASYNC" />
+  </logger>
+  METRICS SERVER LOGGING TAG -->
+  <!-- End of metrics server local logging. -->
+  ```
 
 
