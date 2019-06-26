@@ -24,8 +24,8 @@ import com.feedzai.commons.tracing.api.TracingOpenWithContext;
 import com.feedzai.commons.tracing.api.TracingOpenWithId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -47,23 +47,18 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
      * Null trace context to be used wherever is needed, since the logs won't take into account the causality between
      * calls.
      */
-    public static final TraceContext TRACE_CONTEXT = new TraceContext() {
-        @Override
-        public Object get() {
-            return null;
-        }
-    };
+    public static final TraceContext TRACE_CONTEXT = () -> null;
 
 
     public LoggingTracingEngine() {
-        logger.info("Probe for trace(timestamp:LONG, original_timestamp:LONG, latency:LONG, description:STRING) is ready.");
+        logger.info("Probe for trace(timestamp:LONG, OPTIONAL(eventId:STRING), original_timestamp:LONG, latency:LONG, description:STRING) is ready.");
     }
 
 
     @Override
     public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                                 final String description) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.empty());
 
     }
 
@@ -82,21 +77,21 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description) {
         final double start = System.nanoTime();
         toTraceAsync.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
     }
 
     @Override
     public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description) {
         final double start = System.nanoTime();
         final R result = toTraceAsync.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
         return result;
     }
 
     @Override
     public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                                 final String description, final String eventId) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.empty());
     }
 
     @Override
@@ -112,7 +107,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                final String eventId) {
         final double start = System.nanoTime();
         toTraceAsync.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
     }
 
     @Override
@@ -120,7 +115,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                 final String eventId) {
         final double start = System.nanoTime();
         final R result = toTraceAsync.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
         return result;
     }
 
@@ -132,7 +127,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     @Override
     public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                                 final String description, final TraceContext context) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.empty());
     }
 
     @Override
@@ -148,7 +143,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                final TraceContext context) {
         final double start = System.nanoTime();
         toTraceAsync.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
 
     }
 
@@ -157,7 +152,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
                                 final TraceContext context) {
         final double start = System.nanoTime();
         final R result = toTraceAsync.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
         return result;
     }
 
@@ -165,7 +160,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public <R> R newProcess(final Supplier<R> toTrace, final String description, final TraceContext context) {
         final double start = System.nanoTime();
         final R result = toTrace.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
         return result;
     }
 
@@ -173,13 +168,13 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void newProcess(final Runnable toTrace, final String description, final TraceContext context) {
         final double start = System.nanoTime();
         toTrace.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
     }
 
     @Override
     public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
                                             final TraceContext context) {
-        return logPromise(toTrace, description);
+        return logPromise(toTrace, description, Optional.empty());
     }
 
 
@@ -194,7 +189,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public <R> R addToTrace(final Supplier<R> toTrace, final String description, final TraceContext context) {
         final double start = System.nanoTime();
         final R result = toTrace.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
 
         return result;
     }
@@ -203,7 +198,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void addToTrace(final Runnable toTrace, final String description, final TraceContext context) {
         final double start = System.nanoTime();
         toTrace.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
 
     }
 
@@ -217,7 +212,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     @Override
     public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
                                             final TraceContext context) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.empty());
     }
 
     @Override
@@ -244,7 +239,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public <R> R newTrace(final Supplier<R> toTrace, final String description) {
         final double start = System.nanoTime();
         final R result = toTrace.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
         return result;
     }
 
@@ -252,7 +247,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void newTrace(final Runnable toTrace, final String description) {
         final double start = System.nanoTime();
         toTrace.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
     }
 
     @Override
@@ -263,14 +258,14 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
     @Override
     public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.empty());
     }
 
     @Override
     public <R> R addToTrace(final Supplier<R> toTrace, final String description) {
         final double start = System.nanoTime();
         final R result = toTrace.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
         return result;
     }
 
@@ -278,7 +273,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void addToTrace(final Runnable toTrace, final String description) {
         final double start = System.nanoTime();
         toTrace.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.empty());
     }
 
     @Override
@@ -289,7 +284,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
 
     @Override
     public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.empty());
 
     }
 
@@ -302,7 +297,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public <R> R newTrace(final Supplier<R> toTrace, final String description, final String eventId) {
         final double start = System.nanoTime();
         final R result = toTrace.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.of(eventId));
         return result;
     }
 
@@ -310,7 +305,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void newTrace(final Runnable toTrace, final String description, final String eventId) {
         final double start = System.nanoTime();
         toTrace.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.of(eventId));
     }
 
     @Override
@@ -323,7 +318,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     @Override
     public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
                                           final String eventId) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.of(eventId));
 
     }
 
@@ -331,7 +326,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public <R> R newProcess(final Supplier<R> toTrace, final String description, final String eventId) {
         final double start = System.nanoTime();
         final R result = toTrace.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.of(eventId));
         return result;
     }
 
@@ -339,7 +334,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void newProcess(final Runnable toTrace, final String description, final String eventId) {
         final double start = System.nanoTime();
         toTrace.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.of(eventId));
     }
 
     @Override
@@ -352,14 +347,14 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     @Override
     public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
                                             final String eventId) {
-        return logPromise(toTrace, description);
+        return logPromise(toTrace, description, Optional.of(eventId));
     }
 
     @Override
     public <R> R addToTrace(final Supplier<R> toTrace, final String description, final String eventId) {
         final double start = System.nanoTime();
         final R result = toTrace.get();
-        logMessage(description, start);
+        logMessage(description, start, Optional.of(eventId));
         return result;
     }
 
@@ -367,7 +362,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     public void addToTrace(final Runnable toTrace, final String description, final String eventId) {
         final double start = System.nanoTime();
         toTrace.run();
-        logMessage(description, start);
+        logMessage(description, start, Optional.of(eventId));
     }
 
     @Override
@@ -377,7 +372,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
         final double start = System.nanoTime();
         final CompletableFuture<R> future = toTraceAsync.get();
         future.handle((f, t) -> {
-            logMessage(description, start);
+            logMessage(description, start, Optional.of(eventId));
             return this;
         });
         return future;
@@ -386,7 +381,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
     @Override
     public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
                                             final String eventId) {
-        return logPromise(toTraceAsync, description);
+        return logPromise(toTraceAsync, description, Optional.of(eventId));
     }
 
     /**
@@ -396,11 +391,11 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
      * @param <R> The return type.
      * @return Whatever would be returned by the Promise.
      */
-    private <R> Promise<R> logPromise(Supplier<Promise<R>> toTraceAsync, String description) {
+    private <R> Promise<R> logPromise(Supplier<Promise<R>> toTraceAsync, String description, Optional<String> eventId) {
         final double start = System.nanoTime();
         final Promise<R> promise = toTraceAsync.get();
-        promise.onErrorPromise(throwable -> logMessage(description, start));
-        promise.onCompletePromise(throwable -> logMessage(description, start));
+        promise.onErrorPromise(throwable -> logMessage(description, start, eventId));
+        promise.onCompletePromise(throwable -> logMessage(description, start, eventId));
         return toTraceAsync.get();
     }
 
@@ -419,10 +414,11 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
      * @param description A textual representation of the execution.
      * @param start the starting timestamp of the execution.
      */
-    private void logMessage(String description, double start) {
+    private void logMessage(String description, double start, Optional<String> eventId) {
         final double end = System.nanoTime();
         final double latency = start - end;
-        logger.info("trace,{},{},{},{}ms", end, start, latency / 1000, description);
+        final String parsedEventId = eventId.map(s -> "," + s).orElse("");
+        logger.trace("{}{},{},{}", start, parsedEventId, latency, description);
     }
 
 }
