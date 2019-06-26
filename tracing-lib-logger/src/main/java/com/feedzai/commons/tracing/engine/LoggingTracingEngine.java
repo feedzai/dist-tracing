@@ -47,7 +47,7 @@ public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen
      * Null trace context to be used wherever is needed, since the logs won't take into account the causality between
      * calls.
      */
-    public static final TraceContext TRACE_CONTEXT = () -> null;
+    private static final TraceContext TRACE_CONTEXT = () -> null;
 
 
     public LoggingTracingEngine() {
