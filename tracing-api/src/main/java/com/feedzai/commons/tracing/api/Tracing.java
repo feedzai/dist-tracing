@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2018 Feedzai
+ *  * Copyright 2019 Feedzai
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public interface Tracing {
      * @param description  The description or name that best describes this operation.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    Promise newTracePromise(Supplier<Promise> toTraceAsync, String description);
+    <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description);
 
 
     /**
@@ -137,7 +137,7 @@ public interface Tracing {
      * @param description  The description or name that best describes this operation.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description);
+    <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description);
 
     /**
      * Returns whether or not there is a currently active span.

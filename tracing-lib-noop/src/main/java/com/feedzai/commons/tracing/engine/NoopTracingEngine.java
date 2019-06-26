@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2018 Feedzai
+ *  * Copyright 2019 Feedzai
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  *
  */
 
-import com.feedzai.commons.tracing.api.Promise;
+package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
 import com.feedzai.commons.tracing.api.TracingOpen;
 import com.feedzai.commons.tracing.api.TracingOpenWithContext;
@@ -27,12 +27,27 @@ import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+/**
+ * Implementation of all Tracing APIs that does nothing so as not to affect the execution of the application.
+ *
+ * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
+ */
 public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
 
+    /**
+     * Null trace context to be used wherever is needed, since the logs won't take into account the causality between
+     * calls.
+     */
+    public static final TraceContext TRACE_CONTEXT = new TraceContext() {
+        @Override
+        public Object get() {
+            return null;
+        }
+    };
 
     @Override
-    public <R> Promise addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description) {
+    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
+                                                String description) {
         return toTraceAsync.get();
     }
 
@@ -44,7 +59,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void addToTraceOpen(Runnable toTraceAsync, Object object, String description) {
-
+        toTraceAsync.run();
     }
 
     @Override
@@ -53,8 +68,8 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description, String eventId) {
+    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
+                                                String description, String eventId) {
         return toTraceAsync.get();
     }
 
@@ -68,6 +83,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     @Override
     public void addToTraceOpen(Runnable toTraceAsync, Object object, String description,
                                String eventId) {
+        toTraceAsync.run();
 
     }
 
@@ -83,8 +99,8 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                             String description, TraceContext context) {
+    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
+                                                String description, TraceContext context) {
         return toTraceAsync.get();
     }
 
@@ -98,6 +114,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     @Override
     public void addToTraceOpen(Runnable toTraceAsync, Object object, String description,
                                TraceContext context) {
+        toTraceAsync.run();
 
     }
 
@@ -114,12 +131,13 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void newProcess(Runnable toTrace, String description, TraceContext context) {
+        toTrace.run();
 
     }
 
     @Override
-    public Promise newProcessPromise(Supplier<Promise> toTrace, String description,
-                                     TraceContext context) {
+    public <R> Promise<R> newProcessPromise(Supplier<Promise<R>> toTrace, String description,
+                                            TraceContext context) {
         return toTrace.get();
     }
 
@@ -136,6 +154,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void addToTrace(Runnable toTrace, String description, TraceContext context) {
+        toTrace.run();
 
     }
 
@@ -146,7 +165,8 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, TraceContext context) {
+    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description,
+                                            TraceContext context) {
         return toTraceAsync.get();
     }
 
@@ -157,22 +177,17 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public TraceContext deserializeContext(Serializable headers) {
-        return new TraceContext() {
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
+        return TRACE_CONTEXT;
     }
 
     @Override
     public TraceContext currentContext() {
-        return null;
+        return TRACE_CONTEXT;
     }
 
     @Override
     public TraceContext currentContextforObject(Object obj) {
-        return null;
+        return TRACE_CONTEXT;
     }
 
     @Override
@@ -182,6 +197,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void newTrace(Runnable toTrace, String description) {
+        toTrace.run();
 
     }
 
@@ -191,7 +207,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public Promise newTracePromise(Supplier<Promise> toTraceAsync, String description) {
+    public <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description) {
         return toTraceAsync.get();
     }
 
@@ -202,6 +218,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void addToTrace(Runnable toTrace, String description) {
+        toTrace.run();
 
     }
 
@@ -211,7 +228,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description) {
+    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description) {
         return toTraceAsync.get();
     }
 
@@ -227,6 +244,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void newTrace(Runnable toTrace, String description, String eventId) {
+        toTrace.run();
 
     }
 
@@ -237,7 +255,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public Promise newTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId) {
+    public <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
         return toTraceAsync.get();
     }
 
@@ -248,17 +266,18 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void newProcess(Runnable toTrace, String description, String eventId) {
+        toTrace.run();
 
     }
 
     @Override
-    public CompletableFuture newProcessFuture(Supplier<CompletableFuture> toTrace, String description,
-                                              String eventId) {
+    public <R> CompletableFuture<R> newProcessFuture(Supplier<CompletableFuture<R>> toTrace, String description,
+                                                     String eventId) {
         return toTrace.get();
     }
 
     @Override
-    public Promise newProcessPromise(Supplier<Promise> toTrace, String description, String eventId) {
+    public <R> Promise<R> newProcessPromise(Supplier<Promise<R>> toTrace, String description, String eventId) {
         return toTrace.get();
     }
 
@@ -269,6 +288,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public void addToTrace(Runnable toTrace, String description, String eventId) {
+        toTrace.run();
 
     }
 
@@ -279,18 +299,13 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     }
 
     @Override
-    public Promise addToTracePromise(Supplier<Promise> toTraceAsync, String description, String eventId) {
+    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
         return toTraceAsync.get();
     }
 
     @Override
     public TraceContext currentContextforId(String eventId) {
-        return new TraceContext() {
-            @Override
-            public Object get() {
-                return null;
-            }
-        };
+        return TRACE_CONTEXT;
     }
 
     @Override

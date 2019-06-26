@@ -28,35 +28,17 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>tracing-lib-jaeger</artifactId>
-    <build>
+    <artifactId>tracing-lib-log</artifactId>
 
-    </build>
     <dependencies>
         <dependency>
-            <groupId>io.jaegertracing</groupId>
-            <artifactId>jaeger-thrift</artifactId>
-            <classifier>shadow</classifier>
-        </dependency>
-        <dependency>
-            <groupId>io.opentracing</groupId>
-            <artifactId>opentracing-mock</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.jaegertracing</groupId>
-            <artifactId>jaeger-client</artifactId>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
         </dependency>
         <dependency>
             <groupId>com.feedzai.commons.tracing</groupId>
             <artifactId>tracing-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.feedzai.commons.tracing</groupId>
-            <artifactId>tracing-lib</artifactId>
         </dependency>
     </dependencies>
 
