@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2018 Feedzai
+ *  * Copyright 2019 Feedzai
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     }
 
     @Override
-    public Promise newProcessPromise(final Supplier<Promise> toTrace, final String description,
+    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
                                   final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
         spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
@@ -219,7 +219,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
 
 
     @Override
-    public Promise newTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
+    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
         final Span span = buildActiveParentSpan(description);
         return finishParentPromiseSpan(toTraceAsync, span);
     }
@@ -267,14 +267,14 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     }
 
     @Override
-    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description) {
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
         final Span span = buildActiveSpan(description);
         return finishPromiseSpan(toTraceAsync, span);
     }
 
 
     @Override
-    public Promise addToTracePromise(final Supplier<Promise> toTraceAsync, final String description,
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
                                      final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
         return finishPromiseSpan(toTraceAsync, span);
@@ -345,7 +345,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * @param span         The span that is wrapping the execution and should be finished.
      * @return the same {@link Promise} that was passed in {@code toTraceAsync}
      */
-    Promise finishPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
+    <R> Promise<R> finishPromiseSpan(final Supplier<Promise<R>> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
             popSpanForTraceId(span);
@@ -364,7 +364,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * @param span         The span that is wrapping the execution and should be finished.
      * @return the same {@link Promise} that was passed in {@code toTraceAsync}
      */
-    Promise finishParentPromiseSpan(final Supplier<Promise> toTraceAsync, final Span span) {
+    <R> Promise<R> finishParentPromiseSpan(final Supplier<Promise<R>> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
         }).onErrorPromise(x -> {

@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2018 Feedzai
+ *  * Copyright 2019 Feedzai
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public interface TracingOpenWithContext extends TracingWithContext {
      * @param context      Represents the context of the current execution.
      * @return What was to be returned by the traced code.
      */
-    <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
                                       final String description,
                                       final TraceContext context);
 

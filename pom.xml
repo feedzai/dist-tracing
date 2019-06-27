@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ /*
-  ~  * Copyright 2018 Feedzai
+  ~  * Copyright 2019 Feedzai
   ~  *
   ~  * Licensed under the Apache License, Version 2.0 (the "License");
   ~  * you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@
         <module>tracing-lib</module>
         <module>tracing-lib-jaeger</module>
         <module>tracing-lib-noop</module>
+        <module>tracing-lib-logger</module>
     </modules>
 
     <build>
