@@ -8,7 +8,7 @@ This project is a simplified API for tracing Java based distributed systems, as 
 
 In this book you will first find a small explanation of the tracing model, then a high-level description of the APIs and some instruction on when to use each API.
 
-# Installation
+## Installation
 
 This project is avaliable on Maven Central. To use it in your projects add the following to your `pom.xml`
 
@@ -21,11 +21,11 @@ This project is avaliable on Maven Central. To use it in your projects add the f
 </dependency>
 ```
 
-# Usage
+## Usage
 
 For an API description along with usage examples please refer to the [Documentation](site/src/gitbook/DESCRIPTION.md)
 
-# Build
+## Build
 
 Run the following command:
 
@@ -39,7 +39,7 @@ To build without running tests execute:
 mvn clean install -DskipTests
 ```
 
-# Enable Logging
+## Enable Logging
 
 If you're running the API backed by our LoggingTracingEngine you need to add the following to your `logback.xml`
 
