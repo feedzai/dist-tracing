@@ -19,9 +19,6 @@
 
 package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.api.TracingOpen;
-import com.feedzai.commons.tracing.api.TracingOpenWithContext;
-import com.feedzai.commons.tracing.api.TracingOpenWithId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.Serializable;
@@ -35,7 +32,7 @@ import java.util.function.Supplier;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public class LoggingTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
+public class LoggingTracingEngine implements TracingEngine {
 
 
     /**

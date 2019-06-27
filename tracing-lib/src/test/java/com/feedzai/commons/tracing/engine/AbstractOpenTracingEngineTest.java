@@ -29,12 +29,12 @@ import static org.junit.Assert.*;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
-public class AbstractTracingEngineTest {
+public class AbstractOpenTracingEngineTest {
 
     @Test
     public void testNewTraceSupplier() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
         assertEquals(1, mockTracer.finishedSpans().size());
@@ -47,7 +47,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testNewTraceRunnable() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
         assertEquals(1, mockTracer.finishedSpans().size());
@@ -60,7 +60,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testNewTraceAsync() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         CompletableFuture future = new CompletableFuture();
         tracing.newTraceAsync(() -> future, "Do Long Running Stuff");
@@ -76,7 +76,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testNewTracePromise() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         MockPromise promise = new MockPromise();
         tracing.newTracePromise(() -> promise, "Do Long Running Stuff");
@@ -92,7 +92,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceSupplier() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(() -> {
             tracing.addToTrace(TestUtils::doStuffWithResult, "Do More Stuff");
@@ -112,7 +112,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceSupplierWithContext() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
         SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
@@ -133,7 +133,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceRunnable() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(() -> {
             tracing.addToTrace(TestUtils::doStuffVoid, "Do More Stuff");
@@ -153,7 +153,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceRunnableWithContext() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
         SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
@@ -174,7 +174,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceAsync() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         CompletableFuture future = new CompletableFuture();
         tracing.newTrace(() -> {
@@ -199,7 +199,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceAsyncWithContext() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         CompletableFuture future = new CompletableFuture();
 
@@ -227,7 +227,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTracePromise() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         MockPromise promise = new MockPromise();
 
@@ -254,7 +254,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTracePromiseWithContext() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         MockPromise promise = new MockPromise();
         tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
@@ -280,7 +280,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testNewProcessSupplier() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
         SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
@@ -299,7 +299,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testNewProcessRunnable() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
         SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
@@ -319,7 +319,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testNewProcessFuture() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
         SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
@@ -344,7 +344,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testNewProcessPromise() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
         SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
@@ -369,7 +369,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceOpenSupplier() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         Object obj = new Object();
         tracing.newTrace(() -> {
@@ -392,7 +392,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceOpenSupplierWithContext() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         Object obj = new Object();
 
@@ -417,7 +417,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceOpenRunnable() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         Object obj = new Object();
         tracing.newTrace(() -> {
@@ -440,7 +440,7 @@ public class AbstractTracingEngineTest {
     @Test
     public void testAddToTraceOpenRunnableWithContext() {
         MockTracer mockTracer = new MockTracer();
-        TracingEngine tracing = new TracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
 
         Object obj = new Object();
         tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");

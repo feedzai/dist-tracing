@@ -19,10 +19,12 @@
 
 package com.feedzai.commons.tracing.engine.configuration;
 
+import com.feedzai.commons.tracing.engine.AbstractOpenTracingEngine;
+
 import java.time.Duration;
 
 /**
- * Configuration for the caches used in {@link com.feedzai.commons.tracing.engine.AbstractTracingEngine}.
+ * Configuration for the caches used in {@link AbstractOpenTracingEngine}.
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */

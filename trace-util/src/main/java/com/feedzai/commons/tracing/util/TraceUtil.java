@@ -17,7 +17,8 @@
  *
  */
 
-package com.feedzai.commons.tracing.engine;
+package com.feedzai.commons.tracing.util;
+import com.feedzai.commons.tracing.engine.TracingEngine;
 
 /**
  * Singleton that holds an engine of the tracing engine to be shared.
@@ -30,7 +31,7 @@ public class TraceUtil {
     /**
      * The tracer engine.
      */
-    private static JaegerTracingEngine engine;
+    private static TracingEngine engine;
 
     private TraceUtil(){}
 
@@ -39,7 +40,7 @@ public class TraceUtil {
      *
      * @param engine The engine.
      */
-    public static void init(final JaegerTracingEngine engine) {
+    public static void init(final TracingEngine engine) {
         TraceUtil.engine = engine;
     }
 
@@ -48,7 +49,7 @@ public class TraceUtil {
      *
      * @return the engine.
      */
-    public static JaegerTracingEngine instance() {
+    public static TracingEngine instance() {
         return engine;
     }
 

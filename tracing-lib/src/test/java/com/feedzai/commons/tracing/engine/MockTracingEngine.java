@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public class TracingEngine extends AbstractTracingEngine {
+public class MockTracingEngine extends AbstractOpenTracingEngine {
 
     /**
      * Constructor for this abstract class to be called by the extension classes to supply the implementation specific
@@ -38,8 +38,8 @@ public class TracingEngine extends AbstractTracingEngine {
      * @param tracer        The Tracer implementation of the underlying tracing Engine.
      * @param configuration The configuration parameters for the caches.
      */
-    TracingEngine(Tracer tracer,
-                  CacheConfiguration configuration) {
+    MockTracingEngine(Tracer tracer,
+                      CacheConfiguration configuration) {
         super(tracer, configuration);
     }
 

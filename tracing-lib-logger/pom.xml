@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>com.feedzai.commons.tracing</groupId>
-            <artifactId>tracing-api</artifactId>
+            <artifactId>tracing-lib</artifactId>
         </dependency>
     </dependencies>
 

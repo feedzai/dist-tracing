@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public class JaegerTracingEngine extends AbstractTracingEngineWithId {
+public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
 
 
     /**

@@ -40,7 +40,7 @@ import java.util.function.Supplier;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine {
+public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracingEngine {
 
     /**
      * Maps an application specific ID that identifies a trace to the TraceId.
@@ -59,8 +59,8 @@ public abstract class AbstractTracingEngineWithId extends AbstractTracingEngine 
      * @param tracer        The Tracer implementation of the underlying tracing Engine.
      * @param configuration The configuration parameters for the caches.
      */
-    protected AbstractTracingEngineWithId(final Tracer tracer,
-                                          final CacheConfiguration configuration) {
+    protected AbstractOpenTracingEngineWithId(final Tracer tracer,
+                                              final CacheConfiguration configuration) {
         super(tracer, configuration);
         this.traceIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
                 .maximumSize(configuration.getMaximumSize()).build();

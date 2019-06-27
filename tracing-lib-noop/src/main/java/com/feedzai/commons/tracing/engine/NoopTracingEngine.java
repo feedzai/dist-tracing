@@ -19,9 +19,6 @@
 
 package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.api.TracingOpen;
-import com.feedzai.commons.tracing.api.TracingOpenWithContext;
-import com.feedzai.commons.tracing.api.TracingOpenWithId;
 
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
@@ -32,7 +29,7 @@ import java.util.function.Supplier;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
+public class NoopTracingEngine implements TracingEngine {
 
     /**
      * Null trace context to be used wherever is needed, since the logs won't take into account the causality between

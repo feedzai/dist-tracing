@@ -26,7 +26,7 @@ import io.opentracing.Tracer;
 
 import java.io.Serializable;
 
-public class TracingEngineWithId extends AbstractTracingEngineWithId {
+public class TracingEngineWithId extends AbstractOpenTracingEngineWithId {
     /**
      * Constructor for this abstract class to be called by the extension classes to supply the implementation specific
      * parameters.

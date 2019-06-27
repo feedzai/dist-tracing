@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.*;
 
-public class AbstractTracingEngineWithIdTest {
+public class AbstractOpenTracingEngineWithIdTest {
 
     public static final String EVENT_ID = "498c9cf0-295e-44b1-bed8-73e1e0c3e389";
     public static final String TRACE_ID_STRING = "1:1:1";
