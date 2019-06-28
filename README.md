@@ -58,14 +58,13 @@ mvn clean install -DskipTests
 If you're running the API backed by our LoggingTracingEngine you need to add the following to your `logback.xml`
 
 ```
- <!-- METRICS SERVER LOGGING TAG
   <appender name="METRICS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>log/${pulse.logcontext}-metrics.log</file>
+    <file>log/trace.log</file>
     <encoder>
       <pattern>%msg</pattern>
     </encoder>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>log/${pulse.logcontext}-metrics.%d{yyyy-MM}-week-%d{WW}.log.gz</fileNamePattern>
+      <fileNamePattern>log/trace%d{yyyy-MM}-week-%d{WW}.log.gz</fileNamePattern>
       <maxHistory>8</maxHistory>
     </rollingPolicy>
   </appender>
@@ -80,8 +79,6 @@ If you're running the API backed by our LoggingTracingEngine you need to add the
   <logger name="com.feedzai.commons.tracing.engine.LoggingTracingEngine" level="TRACE" additivity="false">
     <appender-ref ref="METRICS-ASYNC" />
   </logger>
-  METRICS SERVER LOGGING TAG -->
-  <!-- End of metrics server local logging. -->
   ```
 
 
