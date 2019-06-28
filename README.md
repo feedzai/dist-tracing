@@ -25,6 +25,20 @@ This project is avaliable on Maven Central. To use it in your projects add the f
 
 For an API description along with usage examples please refer to the [Documentation](site/src/gitbook/DESCRIPTION.md)
 
+## Generating Gitbook documentation
+
+Our docs are also available in Gitbook form, to generate and view them execute the following commands from the project's root.
+
+```
+cd site/src/gitbook
+gitbook install
+gitbook serve
+```
+
+The output of `gitbook serve` should provide a link to the generated webpage.
+
+
+
 ## Build
 
 Run the following command:
