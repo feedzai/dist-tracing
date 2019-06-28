@@ -190,6 +190,21 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.feedzai.commons.tracing</groupId>
+                <artifactId>tracing-lib-logger</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.feedzai.commons.tracing</groupId>
+                <artifactId>tracing-lib-noop</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.feedzai.commons.tracing</groupId>
+                <artifactId>tracing-lib-jaeger</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>

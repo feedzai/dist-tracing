@@ -74,17 +74,18 @@ public interface TracingWithContext extends Tracing {
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
      * @param context     The context that should be this span's parent
+     * @param <R>         The Return type of the traced code.
      * @return The instrumented Promise.
      */
     <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
-                              final TraceContext context);
+                                     final TraceContext context);
 
     /**
      * Creates a new Span that is the root of this process's portion of the trace.
      *
      * <p>Similar to {@link TracingWithContext#newProcess(Supplier, String, TraceContext)}, {@link
-     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessFuture(Supplier,
-     * String, TraceContext)} but returning a Promise object.
+     * TracingWithContext#newProcess(Runnable, String, TraceContext)} and {@link TracingWithContext#newProcessFuture(Supplier, String,
+     * TraceContext)} but returning a Promise object.
      *
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
@@ -155,6 +156,7 @@ public interface TracingWithContext extends Tracing {
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
      * @param context      Represents the context of the current execution.
+     * @param <R>         The Return type of the traced code.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, TraceContext context);

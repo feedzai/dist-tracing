@@ -28,7 +28,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>tracing-lib-log</artifactId>
+    <artifactId>tracing-lib-logger</artifactId>
 
     <dependencies>
         <dependency>

@@ -35,6 +35,18 @@
             <groupId>com.feedzai.commons.tracing</groupId>
             <artifactId>tracing-lib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.feedzai.commons.tracing</groupId>
+            <artifactId>tracing-lib-jaeger</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.feedzai.commons.tracing</groupId>
+            <artifactId>tracing-lib-logger</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.feedzai.commons.tracing</groupId>
+            <artifactId>tracing-lib-noop</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
