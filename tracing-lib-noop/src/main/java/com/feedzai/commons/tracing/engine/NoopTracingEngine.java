@@ -21,6 +21,8 @@ package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.ap
 import com.feedzai.commons.tracing.api.TraceContext;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -169,7 +171,7 @@ public class NoopTracingEngine implements TracingEngine {
 
     @Override
     public Serializable serializeContext() {
-        return "";
+        return new HashMap<>();
     }
 
     @Override

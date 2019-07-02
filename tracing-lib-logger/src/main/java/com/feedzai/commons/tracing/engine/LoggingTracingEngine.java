@@ -22,6 +22,7 @@ import com.feedzai.commons.tracing.api.TraceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -214,7 +215,7 @@ public class LoggingTracingEngine implements TracingEngine {
 
     @Override
     public Serializable serializeContext() {
-        return "";
+        return new HashMap<>();
     }
 
     @Override

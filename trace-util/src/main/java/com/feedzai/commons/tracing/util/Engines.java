@@ -2,6 +2,6 @@ package com.feedzai.commons.tracing.util;
 
 public enum Engines {
 
-    JAEGER, NOOP, LOGGER;
+    JAEGER, NOOP, LOGGER, DEMUX;
 
 }

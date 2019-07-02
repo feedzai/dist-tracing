@@ -21,6 +21,7 @@ package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.TraceContext;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.feedzai.commons.tracing.engine.configuration.JaegerConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.jaegertracing.Configuration;
@@ -289,6 +290,21 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
         public Builder withCacheMaxSize(final long cacheMaxSize) {
             Preconditions.checkArgument(cacheMaxSize >= 0);
             this.cacheMaxSize = cacheMaxSize;
+            return this;
+        }
+
+        /**
+         * Sets the configurable parameters for this builder based on a {@link JaegerConfiguration}
+         *
+         * @param configuration The configuration used to set-up the builder.
+         * @return This Builder.
+         */
+        public Builder fromConfig(final JaegerConfiguration configuration) {
+            this.sampleRate = configuration.sampleRate;
+            this.cacheMaxSize = configuration.cacheMaxSize;
+            this.processName = configuration.processName;
+            this.ip = configuration.ip;
+            this.cacheDuration = Duration.of(configuration.cacheDurationInMinutes, ChronoUnit.MINUTES);
             return this;
         }
 

@@ -31,7 +31,7 @@ public class TraceUtil {
     /**
      * The tracer engine.
      */
-    private static TracingEngine engine;
+    private static volatile TracingEngine engine;
 
     private TraceUtil(){}
 
