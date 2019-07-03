@@ -10,6 +10,8 @@ import com.feedzai.commons.tracing.engine.configuration.JaegerConfiguration;
 import com.feedzai.commons.tracing.util.configuration.TracingConfiguration;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
@@ -20,6 +22,12 @@ import java.util.function.Supplier;
 
 
 public class LazyConfigTracer implements TracingEngine {
+
+
+    /**
+     * The logger.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(LoggingTracingEngine.class.getName());
 
     /**
      * The last tracing engine in use.
@@ -43,6 +51,7 @@ public class LazyConfigTracer implements TracingEngine {
 
     /**
      * The constructor used to build an instance of LazyConfigTracer.
+     *
      * @param configurationSupplier The supplier that returns the TracingConfiguration loaded by this class.
      */
     public LazyConfigTracer(final Supplier<TracingConfiguration> configurationSupplier) {
@@ -50,6 +59,7 @@ public class LazyConfigTracer implements TracingEngine {
         this.tracingConfigurationSupplier = configurationSupplier;
         oldEngine = getEngine();
         oldConfiguration = configurationSupplier.get();
+
     }
 
     /**
@@ -60,7 +70,8 @@ public class LazyConfigTracer implements TracingEngine {
     private Callable<? extends TracingEngine> reloadEngine() {
         return () -> {
             TracingConfiguration config = tracingConfigurationSupplier.get();
-            if(config.equals(oldConfiguration)) {
+            if (config.equals(oldConfiguration)) {
+                logger.info("Tracing Configuration hasn't changed. Will not change tracer.");
                 return oldEngine;
             } else {
                 TracingEngine engine = null;
@@ -80,6 +91,12 @@ public class LazyConfigTracer implements TracingEngine {
                 }
                 oldConfiguration = config;
                 oldEngine = engine;
+                logger.info("Starting tracer with {} engine", oldConfiguration.activeEngine);
+                if (oldConfiguration.activeEngine == Engines.JAEGER) {
+                    JaegerConfiguration cfg = oldConfiguration.jaegerConfiguration;
+                    logger.info("Jaeger Tracer configuration = samplingRate={}, cacheMaxSize={}, cacheDurationInMinutes={}, processName={} and IP={}"
+                            , cfg.sampleRate, cfg.cacheMaxSize, cfg.cacheDurationInMinutes, cfg.processName, cfg.ip);
+                }
                 return engine;
             }
         };
