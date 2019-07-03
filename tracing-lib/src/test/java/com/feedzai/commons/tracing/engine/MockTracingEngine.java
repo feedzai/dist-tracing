@@ -157,4 +157,14 @@ public class MockTracingEngine extends AbstractOpenTracingEngine {
     public boolean traceHasStarted(String eventId) {
         return false;
     }
+
+    @Override
+    public Tracer getTracer() {
+        return null;
+    }
+
+    @Override
+    public Span currentSpan() {
+        return null;
+    }
 }

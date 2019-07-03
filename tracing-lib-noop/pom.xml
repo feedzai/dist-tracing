@@ -39,5 +39,9 @@
             <groupId>com.feedzai.commons.tracing</groupId>
             <artifactId>tracing-lib</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-noop</artifactId>
+        </dependency>
     </dependencies>
 </project>

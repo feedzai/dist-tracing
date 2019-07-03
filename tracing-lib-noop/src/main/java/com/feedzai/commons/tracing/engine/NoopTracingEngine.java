@@ -19,6 +19,10 @@
 
 package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
+import io.opentracing.noop.NoopSpan;
+import io.opentracing.noop.NoopTracerFactory;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -197,7 +201,6 @@ public class NoopTracingEngine implements TracingEngine {
     @Override
     public void newTrace(Runnable toTrace, String description) {
         toTrace.run();
-
     }
 
     @Override
@@ -310,5 +313,15 @@ public class NoopTracingEngine implements TracingEngine {
     @Override
     public boolean traceHasStarted(String eventId) {
         return false;
+    }
+
+    @Override
+    public Tracer getTracer() {
+        return NoopTracerFactory.create();
+    }
+
+    @Override
+    public Span currentSpan() {
+        return NoopSpan.INSTANCE;
     }
 }

@@ -53,4 +53,14 @@ public class TracingEngineWithId extends AbstractOpenTracingEngineWithId {
     public TraceContext deserializeContext(Serializable headers) {
         return null;
     }
+
+    @Override
+    public Tracer getTracer() {
+        return null;
+    }
+
+    @Override
+    public Span currentSpan() {
+        return null;
+    }
 }

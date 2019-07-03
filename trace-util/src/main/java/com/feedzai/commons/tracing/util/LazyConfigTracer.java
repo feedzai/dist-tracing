@@ -10,6 +10,8 @@ import com.feedzai.commons.tracing.engine.configuration.JaegerConfiguration;
 import com.feedzai.commons.tracing.util.configuration.TracingConfiguration;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -373,5 +375,15 @@ public class LazyConfigTracer implements TracingEngine {
     @Override
     public boolean traceHasStarted(String eventId) {
         return this.getEngine().traceHasStarted(eventId);
+    }
+
+    @Override
+    public Tracer getTracer() {
+        return this.getEngine().getTracer();
+    }
+
+    @Override
+    public Span currentSpan() {
+        return this.getEngine().currentSpan();
     }
 }

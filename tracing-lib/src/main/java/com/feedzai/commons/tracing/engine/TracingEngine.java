@@ -22,6 +22,23 @@ package com.feedzai.commons.tracing.engine;
 import com.feedzai.commons.tracing.api.TracingOpen;
 import com.feedzai.commons.tracing.api.TracingOpenWithContext;
 import com.feedzai.commons.tracing.api.TracingOpenWithId;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
 
 public interface TracingEngine extends TracingOpenWithContext, TracingOpen, TracingOpenWithId {
+
+    /**
+     * Returns the tracer object of the underlying OpenTracing implementation
+     *
+     * @return the tracer.
+     */
+    Tracer getTracer();
+
+    /**
+     * Returns the span that represents the current thread-local context.
+     *
+     * @return current span.
+     */
+    Span currentSpan();
+
 }

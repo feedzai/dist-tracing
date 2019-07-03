@@ -84,20 +84,14 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
         super(tracer, configuration);
     }
 
-    /**
-     * Returns the tracer object of the underlying OpenTracing implementation
-     *
-     * @return the tracer.
-     */
+
+    @Override
     public Tracer getTracer() {
         return super.tracer;
     }
 
-    /**
-     * Returns the span that represents the current thread-local context.
-     *
-     * @return Tracer.
-     */
+
+    @Override
     public Span currentSpan() {
         return tracer.activeSpan();
     }

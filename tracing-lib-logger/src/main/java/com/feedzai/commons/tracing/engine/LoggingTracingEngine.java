@@ -19,6 +19,10 @@
 
 package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
+import io.opentracing.noop.NoopSpan;
+import io.opentracing.noop.NoopTracerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.Serializable;
@@ -419,4 +423,13 @@ public class LoggingTracingEngine implements TracingEngine {
         logger.trace("{}{},{},{}", start, parsedEventId, latency, description);
     }
 
+    @Override
+    public Tracer getTracer() {
+        return NoopTracerFactory.create();
+    }
+
+    @Override
+    public Span currentSpan() {
+        return NoopSpan.INSTANCE;
+    }
 }
