@@ -25,6 +25,10 @@ import com.feedzai.commons.tracing.api.TracingOpenWithId;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 
+/**
+ * Helper interface that allows the engine implementations to depend on a single interface instead of three so that we
+ * can leverage polimorphism to make Engine Decorators more generic.
+ */
 public interface TracingEngine extends TracingOpenWithContext, TracingOpen, TracingOpenWithId {
 
     /**

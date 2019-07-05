@@ -87,7 +87,6 @@ public interface Tracing {
      */
     <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description);
 
-
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
      * become a child of the currently active trace context.
