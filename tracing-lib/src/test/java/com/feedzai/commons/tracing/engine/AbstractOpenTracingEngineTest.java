@@ -1,20 +1,17 @@
 /*
+ * Copyright 2018 Feedzai
  *
- *  * Copyright 2019 Feedzai
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.feedzai.commons.tracing.engine;
@@ -22,6 +19,7 @@ package com.feedzai.commons.tracing.engine;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,100 +29,86 @@ import java.util.concurrent.CompletableFuture;
 
 public class AbstractOpenTracingEngineTest {
 
+    private MockTracer mockTracer;
+    private MockTracingEngine tracing;
+
+    @Before
+    public void initializeTracer(){
+        mockTracer = new MockTracer();
+        tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+    }
+
     @Test
     public void testNewTraceSupplier() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
         tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
+        assertHasNoChildren(mockTracer);
+    }
+
+    private MockSpan assertHasNoChildren(MockTracer mockTracer) {
         assertEquals(1, mockTracer.finishedSpans().size());
 
 
-        MockSpan span = mockTracer.finishedSpans().get(0);
+        final MockSpan span = mockTracer.finishedSpans().get(0);
         assertTrue(span.references().isEmpty());
+        return span;
     }
 
     @Test
     public void testNewTraceRunnable() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
         tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-
-        MockSpan span = mockTracer.finishedSpans().get(0);
-        assertTrue(span.references().isEmpty());
+        assertHasNoChildren(mockTracer);
     }
 
     @Test
     public void testNewTraceAsync() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        CompletableFuture future = new CompletableFuture();
+        final CompletableFuture future = new CompletableFuture();
         tracing.newTraceAsync(() -> future, "Do Long Running Stuff");
         assertEquals(0, mockTracer.finishedSpans().size());
 
         future.complete(null);
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-        MockSpan span = mockTracer.finishedSpans().get(0);
-        assertTrue(span.references().isEmpty());
+        assertHasNoChildren(mockTracer);
     }
 
     @Test
     public void testNewTracePromise() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        MockPromise promise = new MockPromise();
+        final MockPromise promise = new MockPromise();
         tracing.newTracePromise(() -> promise, "Do Long Running Stuff");
         assertEquals(0, mockTracer.finishedSpans().size());
 
         promise.complete();
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-        MockSpan span = mockTracer.finishedSpans().get(0);
-        assertTrue(span.references().isEmpty());
+        assertHasNoChildren(mockTracer);
     }
 
     @Test
     public void testAddToTraceSupplier() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
         tracing.newTrace(() -> {
             tracing.addToTrace(TestUtils::doStuffWithResult, "Do More Stuff");
         }, "Do Stuff");
 
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(1);
-        assertTrue(parent.references().isEmpty());
-
-        MockSpan child = mockTracer.finishedSpans().get(0);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, 1, 0);
     }
 
     @Test
     public void testAddToTraceSupplierWithContext() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final SpanTraceContext ctx = buildNewTraceRunnableContext();
 
         tracing.addToTrace(TestUtils::doStuffWithResult, "Do Stuff in new Process", ctx);
 
+        assertParentRelationship(mockTracer, 0, 1);
+    }
+
+    private SpanTraceContext buildNewTraceRunnableContext() {
+        tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
+        return new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+    }
+
+    private void assertParentRelationship(final MockTracer mockTracer, final int firstFinishedSpan, final int lastFinishedSpan) {
         assertEquals(2, mockTracer.finishedSpans().size());
 
-        MockSpan parent = mockTracer.finishedSpans().get(0);
+        final MockSpan parent = mockTracer.finishedSpans().get(firstFinishedSpan);
         assertTrue(parent.references().isEmpty());
 
-        MockSpan child = mockTracer.finishedSpans().get(1);
+        final MockSpan child = mockTracer.finishedSpans().get(lastFinishedSpan);
         assertEquals(1, child.references().size());
         assertEquals("child_of", child.references().get(0).getReferenceType());
         assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
@@ -132,258 +116,151 @@ public class AbstractOpenTracingEngineTest {
 
     @Test
     public void testAddToTraceRunnable() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
         tracing.newTrace(() -> {
             tracing.addToTrace(TestUtils::doStuffVoid, "Do More Stuff");
         }, "Do Stuff");
 
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(1);
-        assertTrue(parent.references().isEmpty());
-
-        MockSpan child = mockTracer.finishedSpans().get(0);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, 1, 0);
     }
 
     @Test
     public void testAddToTraceRunnableWithContext() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final SpanTraceContext ctx = buildNewTraceSupplierContext();
 
         tracing.addToTrace(TestUtils::doStuffVoid, "Do Stuff in new Process", ctx);
 
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, 0, 1);
     }
 
     @Test
     public void testAddToTraceAsync() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        CompletableFuture future = new CompletableFuture();
+        final CompletableFuture future = new CompletableFuture();
         tracing.newTrace(() -> {
             tracing.addToTraceAsync(() -> future, "Do Long Running Stuff");
         }, "Do Stuff");
 
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        future.complete(null);
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationshipFuture(mockTracer, future);
     }
 
     @Test
     public void testAddToTraceAsyncWithContext() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        final CompletableFuture future = new CompletableFuture();
 
-        CompletableFuture future = new CompletableFuture();
-
-        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final SpanTraceContext ctx = buildNewTraceSupplierContext();
 
         tracing.addToTraceAsync(() -> future, "Do Long Running Stuff", ctx);
 
-        assertEquals(1, mockTracer.finishedSpans().size());
+        assertParentRelationshipFuture(mockTracer, future);
+    }
 
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
+    private void assertParentRelationshipFuture(final MockTracer mockTracer, final CompletableFuture future) {
+        MockSpan parent = assertHasNoChildren(mockTracer);
 
         future.complete(null);
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+       assertParentRelationship(mockTracer, parent);
     }
 
 
     @Test
     public void testAddToTracePromise() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        MockPromise promise = new MockPromise();
-
+        final MockPromise promise = new MockPromise();
 
         tracing.newTrace(() -> {
             tracing.addToTracePromise(() -> promise, "Do Long Running Stuff");
         }, "Do Stuff");
 
-        assertEquals(1, mockTracer.finishedSpans().size());
+        assertParentRelationshipPromise(mockTracer, promise);
+    }
 
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
+    private void assertParentRelationshipPromise(final MockTracer mockTracer, final MockPromise promise) {
+        MockSpan parent = assertHasNoChildren(mockTracer);
 
         promise.complete();
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, parent);
     }
 
     @Test
     public void testAddToTracePromiseWithContext() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        MockPromise promise = new MockPromise();
-        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final MockPromise promise = new MockPromise();
+        final SpanTraceContext ctx = buildNewTraceSupplierContext();
 
         tracing.addToTracePromise(() -> promise, "Do Long Running Stuff", ctx);
 
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        promise.complete();
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationshipPromise(mockTracer, promise);
     }
 
     @Test
     public void testNewProcessSupplier() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final SpanTraceContext ctx = buildNewTraceRunnableContext();
 
         tracing.newProcess(TestUtils::doStuffWithResult, "Do Stuff in new Process", ctx);
 
-        MockSpan parent = mockTracer.finishedSpans().get(0);
+        final MockSpan parent = mockTracer.finishedSpans().get(0);
         assertTrue(parent.references().isEmpty());
 
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, parent);
+
     }
 
     @Test
     public void testNewProcessRunnable() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final SpanTraceContext ctx = buildNewTraceSupplierContext();
 
         tracing.newProcess(TestUtils::doStuffVoid, "Do Stuff in new Process", ctx);
 
-        MockSpan parent = mockTracer.finishedSpans().get(0);
+        final MockSpan parent = mockTracer.finishedSpans().get(0);
         assertTrue(parent.references().isEmpty());
 
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, parent);
     }
 
 
     @Test
     public void testNewProcessFuture() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        final SpanTraceContext ctx = buildNewTraceRunnableContext();
 
-        tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
-
-        CompletableFuture future = new CompletableFuture();
+        final CompletableFuture future = new CompletableFuture();
         tracing.newProcessFuture(() -> future, "Do Long Running Stuff in new Process", ctx);
 
         assertEquals(1, mockTracer.finishedSpans().size());
 
         future.complete(null);
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, 0, 1);
     }
 
     @Test
     public void testNewProcessPromise() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        final SpanTraceContext ctx = buildNewTraceRunnableContext();
 
-        tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
-
-        MockPromise promise = new MockPromise();
+        final MockPromise promise = new MockPromise();
         tracing.newProcessPromise(() -> promise, "Do Long Running Stuff in new Process", ctx);
 
         assertEquals(1, mockTracer.finishedSpans().size());
 
         promise.complete();
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationship(mockTracer, 0, 1);
     }
 
     @Test
     public void testAddToTraceOpenSupplier() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        Object obj = new Object();
+        final Object obj = new Object();
         tracing.newTrace(() -> {
             tracing.addToTraceOpen(TestUtils::doStuffWithResult, obj, "Do More Stuff");
         }, "Do Stuff");
-        assertEquals(1, mockTracer.finishedSpans().size());
+        assertParentRelationshipOpen(mockTracer, tracing, obj);
+    }
 
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
+    private void assertParentRelationshipOpen(final MockTracer mockTracer, final MockTracingEngine tracing, final Object obj) {
+        MockSpan parent = assertHasNoChildren(mockTracer);
 
         tracing.closeOpen(obj);
+        assertParentRelationship(mockTracer, parent);
+    }
+
+    private void assertParentRelationship(MockTracer mockTracer, MockSpan parent) {
         assertEquals(2, mockTracer.finishedSpans().size());
 
-        MockSpan child = mockTracer.finishedSpans().get(1);
+        final MockSpan child = mockTracer.finishedSpans().get(1);
         assertEquals(1, child.references().size());
         assertEquals("child_of", child.references().get(0).getReferenceType());
         assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
@@ -391,79 +268,36 @@ public class AbstractOpenTracingEngineTest {
 
     @Test
     public void testAddToTraceOpenSupplierWithContext() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        final Object obj = new Object();
 
-        Object obj = new Object();
-
-        tracing.newTrace(TestUtils::doStuffWithResult, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final SpanTraceContext ctx = buildNewTraceRunnableContext();
 
         tracing.addToTraceOpen(TestUtils::doStuffWithResult, obj, "Do More Stuff", ctx);
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        tracing.closeOpen(obj);
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationshipOpen(mockTracer, tracing, obj);
     }
 
     @Test
     public void testAddToTraceOpenRunnable() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        Object obj = new Object();
+        final Object obj = new Object();
         tracing.newTrace(() -> {
             tracing.addToTraceOpen(TestUtils::doStuffVoid, obj, "Do More Stuff");
         }, "Do Stuff");
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        tracing.closeOpen(obj);
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationshipOpen(mockTracer, tracing, obj);
     }
 
     @Test
     public void testAddToTraceOpenRunnableWithContext() {
-        MockTracer mockTracer = new MockTracer();
-        MockTracingEngine tracing = new MockTracingEngine(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
-
-        Object obj = new Object();
-        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
-        SpanTraceContext ctx = new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+        final Object obj = new Object();
+        final SpanTraceContext ctx = buildNewTraceSupplierContext();
 
         tracing.addToTraceOpen(TestUtils::doStuffVoid, obj, "Do More Stuff", ctx);
-        assertEquals(1, mockTracer.finishedSpans().size());
-
-        MockSpan parent = mockTracer.finishedSpans().get(0);
-        assertTrue(parent.references().isEmpty());
-
-        tracing.closeOpen(obj);
-        assertEquals(2, mockTracer.finishedSpans().size());
-
-        MockSpan child = mockTracer.finishedSpans().get(1);
-        assertEquals(1, child.references().size());
-        assertEquals("child_of", child.references().get(0).getReferenceType());
-        assertEquals(child.references().get(0).getContext().spanId(), parent.context().spanId());
+        assertParentRelationshipOpen(mockTracer, tracing, obj);
     }
 
-
-
-
+    private SpanTraceContext buildNewTraceSupplierContext() {
+        tracing.newTrace(TestUtils::doStuffVoid, "Do Stuff");
+        return new SpanTraceContext(mockTracer.finishedSpans().get(0).context());
+    }
 
 
 }

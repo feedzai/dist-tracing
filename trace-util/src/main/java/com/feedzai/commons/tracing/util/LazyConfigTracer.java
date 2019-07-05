@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Feedzai
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.feedzai.commons.tracing.util;
 
 import com.feedzai.commons.tracing.api.Promise;
@@ -76,7 +92,7 @@ public class LazyConfigTracer implements TracingEngine {
      */
     private Callable<? extends TracingEngine> reloadEngine() {
         return () -> {
-            TracingConfiguration config = tracingConfigurationSupplier.get();
+            final TracingConfiguration config = tracingConfigurationSupplier.get();
             if (config.equals(oldConfiguration)) {
                 logger.info("Tracing Configuration hasn't changed. Will not change tracer.");
                 return oldEngine;
@@ -84,8 +100,10 @@ public class LazyConfigTracer implements TracingEngine {
                 TracingEngine engine = null;
                 switch (config.activeEngine) {
                     case JAEGER:
-                        JaegerConfiguration jaegerConfiguration = config.jaegerConfiguration;
-                        engine = new JaegerTracingEngine.Builder().fromConfig(jaegerConfiguration).build();
+                        final JaegerConfiguration cfg = config.jaegerConfiguration;
+                        engine = new JaegerTracingEngine.Builder().fromConfig(cfg).build();
+                        logger.debug("Jaeger Tracer configuration = samplingRate={}, cacheMaxSize={}, cacheDurationInMinutes={}, processName={} and IP={}"
+                                ,cfg.sampleRate, cfg.cacheMaxSize, cfg.cacheDurationInMinutes, cfg.processName, cfg.ip);
                         break;
                     case NOOP:
                         engine = new NoopTracingEngine();
@@ -94,16 +112,12 @@ public class LazyConfigTracer implements TracingEngine {
                         engine = new LoggingTracingEngine();
                         break;
                     default:
-                        engine = new LoggingTracingEngine();
+                        logger.warn("Config is unknow, defaulting to Logging");
+                        engine = new NoopTracingEngine();
                 }
                 oldConfiguration = config;
                 oldEngine = engine;
-                logger.info("Starting tracer with {} engine", oldConfiguration.activeEngine);
-                if (oldConfiguration.activeEngine == Engines.JAEGER) {
-                    JaegerConfiguration cfg = oldConfiguration.jaegerConfiguration;
-                    logger.info("Jaeger Tracer configuration = samplingRate={}, cacheMaxSize={}, cacheDurationInMinutes={}, processName={} and IP={}"
-                            , cfg.sampleRate, cfg.cacheMaxSize, cfg.cacheDurationInMinutes, cfg.processName, cfg.ip);
-                }
+                logger.debug("Starting tracer with {} engine", oldConfiguration.activeEngine);
                 return engine;
             }
         };
@@ -117,129 +131,129 @@ public class LazyConfigTracer implements TracingEngine {
     private TracingEngine getEngine() {
         try {
             return engine.get("", reloadEngine());
-        } catch (ExecutionException e) {
+        } catch (final ExecutionException e) {
             return new NoopTracingEngine();
         }
     }
 
     @Override
-    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                                String description) {
+    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                                final String description) {
         return getEngine().addToTraceOpenPromise(toTraceAsync, object, description);
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceOpenFuture(Supplier<CompletableFuture<R>> toTraceAsync,
-                                                         Object object, String description) {
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object, final String description) {
         return getEngine().addToTraceOpenFuture(toTraceAsync, object, description);
     }
 
     @Override
-    public void addToTraceOpen(Runnable toTraceAsync, Object object, String description) {
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description) {
         getEngine().addToTraceOpen(toTraceAsync, object, description);
     }
 
     @Override
-    public <R> R addToTraceOpen(Supplier<R> toTraceAsync, Object value, String description) {
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description) {
         return getEngine().addToTraceOpen(toTraceAsync, value, description);
     }
 
     @Override
-    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                                String description, String eventId) {
+    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                                final String description, final String eventId) {
         return getEngine().addToTraceOpenPromise(toTraceAsync, object, description, eventId);
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceOpenFuture(Supplier<CompletableFuture<R>> toTraceAsync,
-                                                         Object object, String description,
-                                                         String eventId) {
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object, final String description,
+                                                         final String eventId) {
         return getEngine().addToTraceOpenFuture(toTraceAsync, object, description, eventId);
     }
 
     @Override
-    public void addToTraceOpen(Runnable toTraceAsync, Object object, String description,
-                               String eventId) {
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description,
+                               final String eventId) {
         this.getEngine().addToTraceOpen(toTraceAsync, object, description, eventId);
     }
 
     @Override
-    public <R> R addToTraceOpen(Supplier<R> toTraceAsync, Object value, String description,
-                                String eventId) {
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description,
+                                final String eventId) {
         return this.getEngine().addToTraceOpen(toTraceAsync, value, description, eventId);
     }
 
     @Override
-    public void closeOpen(Object object) {
+    public void closeOpen(final Object object) {
         this.getEngine().closeOpen(object);
     }
 
     @Override
-    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
-                                                String description, TraceContext context) {
+    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+                                                final String description, final TraceContext context) {
         return this.getEngine().addToTraceOpenPromise(toTraceAsync, object, description, context);
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceOpenFuture(Supplier<CompletableFuture<R>> toTraceAsync,
-                                                         Object object, String description,
-                                                         TraceContext context) {
+    public <R> CompletableFuture<R> addToTraceOpenFuture(final Supplier<CompletableFuture<R>> toTraceAsync,
+                                                         final Object object, final String description,
+                                                         final TraceContext context) {
         return this.getEngine().addToTraceOpenFuture(toTraceAsync, object, description, context);
     }
 
     @Override
-    public void addToTraceOpen(Runnable toTraceAsync, Object object, String description,
-                               TraceContext context) {
+    public void addToTraceOpen(final Runnable toTraceAsync, final Object object, final String description,
+                               final TraceContext context) {
         this.getEngine().addToTraceOpen(toTraceAsync, object, description, context);
     }
 
     @Override
-    public <R> R addToTraceOpen(Supplier<R> toTraceAsync, Object value, String description,
-                                TraceContext context) {
+    public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description,
+                                final TraceContext context) {
         return this.getEngine().addToTraceOpen(toTraceAsync, value, description, context);
     }
 
     @Override
-    public <R> R newProcess(Supplier<R> toTrace, String description, TraceContext context) {
+    public <R> R newProcess(final Supplier<R> toTrace, final String description, final TraceContext context) {
         return this.getEngine().newProcess(toTrace, description, context);
     }
 
     @Override
-    public void newProcess(Runnable toTrace, String description, TraceContext context) {
+    public void newProcess(final Runnable toTrace, final String description, final TraceContext context) {
         this.getEngine().newProcess(toTrace, description, context);
     }
 
     @Override
-    public <R> Promise<R> newProcessPromise(Supplier<Promise<R>> toTrace, String description,
-                                            TraceContext context) {
+    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
+                                            final TraceContext context) {
         return this.getEngine().newProcessPromise(toTrace, description, context);
     }
 
     @Override
-    public <R> CompletableFuture<R> newProcessFuture(Supplier<CompletableFuture<R>> toTrace,
-                                                     String description, TraceContext context) {
+    public <R> CompletableFuture<R> newProcessFuture(final Supplier<CompletableFuture<R>> toTrace,
+                                                     final String description, final TraceContext context) {
         return this.getEngine().newProcessFuture(toTrace, description, context);
     }
 
     @Override
-    public <R> R addToTrace(Supplier<R> toTrace, String description, TraceContext context) {
+    public <R> R addToTrace(final Supplier<R> toTrace, final String description, final TraceContext context) {
         return this.getEngine().addToTrace(toTrace, description, context);
     }
 
     @Override
-    public void addToTrace(Runnable toTrace, String description, TraceContext context) {
+    public void addToTrace(final Runnable toTrace, final String description, final TraceContext context) {
         this.getEngine().addToTrace(toTrace, description, context);
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                                    TraceContext context) {
+    public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description,
+                                                    final TraceContext context) {
         return this.getEngine().addToTraceAsync(toTraceAsync, description, context);
     }
 
     @Override
-    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description,
-                                            TraceContext context) {
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
+                                            final TraceContext context) {
         return this.getEngine().addToTracePromise(toTraceAsync, description, context);
     }
 
@@ -249,7 +263,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public TraceContext deserializeContext(Serializable headers) {
+    public TraceContext deserializeContext(final Serializable headers) {
         return this.getEngine().deserializeContext(headers);
     }
 
@@ -259,47 +273,47 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public TraceContext currentContextforObject(Object obj) {
+    public TraceContext currentContextforObject(final Object obj) {
         return this.getEngine().currentContextforObject(obj);
     }
 
     @Override
-    public <R> R newTrace(Supplier<R> toTrace, String description) {
+    public <R> R newTrace(final Supplier<R> toTrace, final String description) {
         return this.getEngine().newTrace(toTrace, description);
     }
 
     @Override
-    public void newTrace(Runnable toTrace, String description) {
+    public void newTrace(final Runnable toTrace, final String description) {
         this.getEngine().newTrace(toTrace, description);
     }
 
     @Override
-    public <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description) {
+    public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description) {
         return this.getEngine().newTraceAsync(toTraceAsync, description);
     }
 
     @Override
-    public <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description) {
+    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
         return this.getEngine().newTracePromise(toTraceAsync, description);
     }
 
     @Override
-    public <R> R addToTrace(Supplier<R> toTrace, String description) {
+    public <R> R addToTrace(final Supplier<R> toTrace, final String description) {
         return this.getEngine().addToTrace(toTrace, description);
     }
 
     @Override
-    public void addToTrace(Runnable toTrace, String description) {
+    public void addToTrace(final Runnable toTrace, final String description) {
         this.getEngine().addToTrace(toTrace, description);
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description) {
+    public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description) {
         return this.getEngine().addToTraceAsync(toTraceAsync, description);
     }
 
     @Override
-    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description) {
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
         return this.getEngine().addToTracePromise(toTraceAsync, description);
     }
 
@@ -309,76 +323,76 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <R> R newTrace(Supplier<R> toTrace, String description, String eventId) {
+    public <R> R newTrace(final Supplier<R> toTrace, final String description, final String eventId) {
         return this.getEngine().newTrace(toTrace, description, eventId);
     }
 
     @Override
-    public void newTrace(Runnable toTrace, String description, String eventId) {
+    public void newTrace(final Runnable toTrace, final String description, final String eventId) {
         this.getEngine().newTrace(toTrace, description, eventId);
     }
 
     @Override
-    public <R> CompletableFuture<R> newTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                                  String eventId) {
+    public <R> CompletableFuture<R> newTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description,
+                                                  final String eventId) {
         return this.getEngine().newTraceAsync(toTraceAsync, description, eventId);
     }
 
     @Override
-    public <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
+    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description, final String eventId) {
         return this.getEngine().newTracePromise(toTraceAsync, description, eventId);
     }
 
     @Override
-    public <R> R newProcess(Supplier<R> toTrace, String description, String eventId) {
+    public <R> R newProcess(final Supplier<R> toTrace, final String description, final String eventId) {
         return this.getEngine().newProcess(toTrace, description, eventId);
     }
 
     @Override
-    public void newProcess(Runnable toTrace, String description, String eventId) {
+    public void newProcess(final Runnable toTrace, final String description, final String eventId) {
         this.getEngine().newProcess(toTrace, description, eventId);
     }
 
     @Override
-    public <R> CompletableFuture newProcessFuture(Supplier<CompletableFuture<R>> toTrace,
-                                                  String description, String eventId) {
+    public <R> CompletableFuture newProcessFuture(final Supplier<CompletableFuture<R>> toTrace,
+                                                  final String description, final String eventId) {
         return this.getEngine().newProcessFuture(toTrace, description, eventId);
     }
 
     @Override
-    public <R> Promise<R> newProcessPromise(Supplier<Promise<R>> toTrace, String description,
-                                            String eventId) {
+    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
+                                            final String eventId) {
         return this.getEngine().newProcessPromise(toTrace, description, eventId);
     }
 
     @Override
-    public <R> R addToTrace(Supplier<R> toTrace, String description, String eventId) {
+    public <R> R addToTrace(final Supplier<R> toTrace, final String description, final String eventId) {
         return this.getEngine().addToTrace(toTrace, description, eventId);
     }
 
     @Override
-    public void addToTrace(Runnable toTrace, String description, String eventId) {
+    public void addToTrace(final Runnable toTrace, final String description, final String eventId) {
         this.getEngine().addToTrace(toTrace, description, eventId);
     }
 
     @Override
-    public <R> CompletableFuture<R> addToTraceAsync(Supplier<CompletableFuture<R>> toTraceAsync, String description,
-                                                    String eventId) {
+    public <R> CompletableFuture<R> addToTraceAsync(final Supplier<CompletableFuture<R>> toTraceAsync, final String description,
+                                                    final String eventId) {
         return this.getEngine().addToTraceAsync(toTraceAsync, description, eventId);
     }
 
     @Override
-    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
+    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description, final String eventId) {
         return this.getEngine().addToTracePromise(toTraceAsync, description, eventId);
     }
 
     @Override
-    public TraceContext currentContextforId(String eventId) {
+    public TraceContext currentContextforId(final String eventId) {
         return this.getEngine().currentContextforId(eventId);
     }
 
     @Override
-    public boolean traceHasStarted(String eventId) {
+    public boolean traceHasStarted(final String eventId) {
         return this.getEngine().traceHasStarted(eventId);
     }
 
