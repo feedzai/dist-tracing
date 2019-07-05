@@ -23,6 +23,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 
+/**
+ * Tracer decorator that periodically realoads the configuration, allowing for configuration changes on the fly.
+ *
+ * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
+ */
 public class LazyConfigTracer implements TracingEngine {
 
 
@@ -34,17 +39,17 @@ public class LazyConfigTracer implements TracingEngine {
     /**
      * The last tracing engine in use.
      */
-    private TracingEngine oldEngine;
+    private volatile TracingEngine oldEngine;
 
     /**
      * The last configuration in use.
      */
-    private TracingConfiguration oldConfiguration;
+    private volatile TracingConfiguration oldConfiguration;
 
     /**
      * The supplier that reloads the configuration file.
      */
-    private Supplier<TracingConfiguration> tracingConfigurationSupplier;
+    private final Supplier<TracingConfiguration> tracingConfigurationSupplier;
 
     /**
      * The cached tracing engine to be used for tracing.
@@ -57,7 +62,7 @@ public class LazyConfigTracer implements TracingEngine {
      * @param configurationSupplier The supplier that returns the TracingConfiguration loaded by this class.
      */
     public LazyConfigTracer(final Supplier<TracingConfiguration> configurationSupplier) {
-        engine = CacheBuilder.newBuilder().maximumSize(1).expireAfterWrite(10, TimeUnit.MINUTES).build();
+        engine = CacheBuilder.newBuilder().maximumSize(1).expireAfterWrite(1, TimeUnit.MINUTES).build();
         this.tracingConfigurationSupplier = configurationSupplier;
         oldEngine = getEngine();
         oldConfiguration = configurationSupplier.get();
