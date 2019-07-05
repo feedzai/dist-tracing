@@ -14,22 +14,38 @@
  * limitations under the License.
  */
 
-package com.feedzai.commons.tracing.api;
+package com.feedzai.commons.tracing.engine.configuration;
 
 /**
- * Encapsulates objects that represents trace contexts in the underlying implementations.
- * @param <T> The type of the context object.
+ * Class that holds the configuration for {@link com.feedzai.commons.tracing.engine.JaegerTracingEngine}
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public interface TraceContext<T> {
+public class JaegerConfiguration {
 
     /**
-     * Returns the context.
-     * @return The context object.
+     * The duration of each cache record prior to expiration.
      */
-    T get();
+    public long cacheDurationInMinutes;
 
+    /**
+     * The maximum size of the caches.
+     */
+    public long cacheMaxSize;
 
+    /**
+     * The rate at which requests will be sampled for tracing.
+     */
+    public double sampleRate;
+
+    /**
+     * The name of the this process.
+     */
+    public String processName;
+
+    /**
+     * The ip address of the jaeger agent.
+     */
+    public String ip;
 
 }

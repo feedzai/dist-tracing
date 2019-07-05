@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ /*
-  ~  * Copyright 2019 Feedzai
-  ~  *
-  ~  * Licensed under the Apache License, Version 2.0 (the "License");
-  ~  * you may not use this file except in compliance with the License.
-  ~  * You may obtain a copy of the License at
-  ~  *
-  ~  *     http://www.apache.org/licenses/LICENSE-2.0
-  ~  *
-  ~  * Unless required by applicable law or agreed to in writing, software
-  ~  * distributed under the License is distributed on an "AS IS" BASIS,
-  ~  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~  * See the License for the specific language governing permissions and
-  ~  * limitations under the License.
-  ~  *
-  ~  */
+  ~ Copyright 2018 Feedzai
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ 	http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -84,6 +81,7 @@
         <module>tracing-lib-jaeger</module>
         <module>tracing-lib-noop</module>
         <module>tracing-lib-logger</module>
+        <module>trace-util</module>
     </modules>
 
     <build>
@@ -189,6 +187,21 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.feedzai.commons.tracing</groupId>
+                <artifactId>tracing-lib-logger</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.feedzai.commons.tracing</groupId>
+                <artifactId>tracing-lib-noop</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.feedzai.commons.tracing</groupId>
+                <artifactId>tracing-lib-jaeger</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
@@ -208,6 +221,11 @@
                 <groupId>io.jaegertracing</groupId>
                 <artifactId>jaeger-client</artifactId>
                 <version>${jaeger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentracing</groupId>
+                <artifactId>opentracing-noop</artifactId>
+                <version>${opentracing.version}</version>
             </dependency>
 
 

@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package com.feedzai.commons.tracing.engine;
+package com.feedzai.commons.tracing.util;
 
-public class TestUtils {
+/**
+ * Represents all possible Engine implementation for configuration purposes.
+ *
+ * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
+ */
+public enum Engines {
 
-    public static int doStuffWithResult() {
-        int result = 0;
-        for (int i = 0; i < 1000; i++) {
-            result = i << 2;
-        }
-        return result;
-    }
-
-    public static void doStuffVoid() {
-        int result = 0;
-        for (int i = 0; i < 1000; i++) {
-            result = i << 2;
-        }
-    }
-
+    JAEGER, NOOP, LOGGER
 
 }
