@@ -28,6 +28,8 @@ import io.opentracing.Tracer;
 /**
  * Helper interface that allows the engine implementations to depend on a single interface instead of three so that we
  * can leverage polimorphism to make Engine Decorators more generic.
+ *
+ * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
 public interface TracingEngine extends TracingOpenWithContext, TracingOpen, TracingOpenWithId {
 
