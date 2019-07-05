@@ -1,26 +1,24 @@
 /*
+ * Copyright 2018 Feedzai
  *
- *  * Copyright 2019 Feedzai
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.TraceContext;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.feedzai.commons.tracing.engine.configuration.JaegerConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.jaegertracing.Configuration;
@@ -51,7 +49,7 @@ import java.util.stream.Collectors;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public class JaegerTracingEngine extends AbstractTracingEngineWithId {
+public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
 
 
     /**
@@ -83,20 +81,14 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
         super(tracer, configuration);
     }
 
-    /**
-     * Returns the tracer object of the underlying OpenTracing implementation
-     *
-     * @return the tracer.
-     */
+
+    @Override
     public Tracer getTracer() {
         return super.tracer;
     }
 
-    /**
-     * Returns the span that represents the current thread-local context.
-     *
-     * @return Tracer.
-     */
+
+    @Override
     public Span currentSpan() {
         return tracer.activeSpan();
     }
@@ -289,6 +281,21 @@ public class JaegerTracingEngine extends AbstractTracingEngineWithId {
         public Builder withCacheMaxSize(final long cacheMaxSize) {
             Preconditions.checkArgument(cacheMaxSize >= 0);
             this.cacheMaxSize = cacheMaxSize;
+            return this;
+        }
+
+        /**
+         * Sets the configurable parameters for this builder based on a {@link JaegerConfiguration}
+         *
+         * @param configuration The configuration used to set-up the builder.
+         * @return This Builder.
+         */
+        public Builder fromConfig(final JaegerConfiguration configuration) {
+            this.sampleRate = configuration.sampleRate;
+            this.cacheMaxSize = configuration.cacheMaxSize;
+            this.processName = configuration.processName;
+            this.ip = configuration.ip;
+            this.cacheDuration = Duration.of(configuration.cacheDurationInMinutes, ChronoUnit.MINUTES);
             return this;
         }
 

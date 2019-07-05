@@ -1,20 +1,17 @@
 /*
+ * Copyright 2018 Feedzai
  *
- *  * Copyright 2019 Feedzai
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.feedzai.commons.tracing.engine;
@@ -29,7 +26,7 @@ import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public class TracingEngine extends AbstractTracingEngine {
+public class MockTracingEngine extends AbstractOpenTracingEngine {
 
     /**
      * Constructor for this abstract class to be called by the extension classes to supply the implementation specific
@@ -38,8 +35,8 @@ public class TracingEngine extends AbstractTracingEngine {
      * @param tracer        The Tracer implementation of the underlying tracing Engine.
      * @param configuration The configuration parameters for the caches.
      */
-    TracingEngine(Tracer tracer,
-                  CacheConfiguration configuration) {
+    MockTracingEngine(Tracer tracer,
+                      CacheConfiguration configuration) {
         super(tracer, configuration);
     }
 
@@ -156,5 +153,15 @@ public class TracingEngine extends AbstractTracingEngine {
     @Override
     public boolean traceHasStarted(String eventId) {
         return false;
+    }
+
+    @Override
+    public Tracer getTracer() {
+        return null;
+    }
+
+    @Override
+    public Span currentSpan() {
+        return null;
     }
 }

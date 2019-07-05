@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package com.feedzai.commons.tracing.exception;
+package com.feedzai.commons.tracing.util.configuration;
 
+import com.feedzai.commons.tracing.engine.configuration.JaegerConfiguration;
+import com.feedzai.commons.tracing.util.Engines;
 
 /**
- * Exception that should be thrown when a new span is added to a new trace before {@link
- * com.feedzai.commons.tracing.api.Tracing#newTraceAsync(Supplier, String)} or {@link
- * com.feedzai.commons.tracing.api.Tracing#newTrace(Runnable, String)} or {@link com.feedzai.commons.tracing.api.Tracing#newTrace(Runnable,
- * String)} have been called.
+ * Class that holds the configuration for for tracing.
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public class TraceNotStartedException extends RuntimeException {
+public class TracingConfiguration {
+
+    /**
+     * The engine that should be used.
+     */
+    public Engines activeEngine;
+
+    /**
+     * The configuration parameters for {@link com.feedzai.commons.tracing.engine.JaegerTracingEngine}.
+     */
+    public JaegerConfiguration jaegerConfiguration;
+
 }

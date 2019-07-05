@@ -14,22 +14,40 @@
  * limitations under the License.
  */
 
-package com.feedzai.commons.tracing.api;
+package com.feedzai.commons.tracing.util;
+import com.feedzai.commons.tracing.engine.TracingEngine;
 
 /**
- * Encapsulates objects that represents trace contexts in the underlying implementations.
- * @param <T> The type of the context object.
+ * Singleton that holds an engine of the tracing engine to be shared.
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public interface TraceContext<T> {
+public class TraceUtil {
+
 
     /**
-     * Returns the context.
-     * @return The context object.
+     * The tracer engine.
      */
-    T get();
+    private static volatile TracingEngine engine;
 
+    private TraceUtil(){}
 
+    /**
+     * Initiates the tracing engine.
+     *
+     * @param engine The engine.
+     */
+    public static void init(final TracingEngine engine) {
+        TraceUtil.engine = engine;
+    }
+
+    /**
+     * Obtains the engine.
+     *
+     * @return the engine.
+     */
+    public static TracingEngine instance() {
+        return engine;
+    }
 
 }

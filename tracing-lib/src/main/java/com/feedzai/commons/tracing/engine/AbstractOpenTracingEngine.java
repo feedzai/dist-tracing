@@ -1,29 +1,23 @@
 /*
+ * Copyright 2018 Feedzai
  *
- *  * Copyright 2019 Feedzai
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.api.TracingOpen;
-import com.feedzai.commons.tracing.api.TracingOpenWithContext;
-import com.feedzai.commons.tracing.api.TracingOpenWithId;
 import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -45,7 +39,7 @@ import java.util.function.Supplier;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public abstract class AbstractTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
+public abstract class AbstractOpenTracingEngine implements TracingEngine {
 
     /**
      * The Tracer object that will be used by the library. This is an OpenTracing API class so it does not make any
@@ -69,7 +63,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     /**
      * The logger.
      */
-    static final Logger logger = LoggerFactory.getLogger(AbstractTracingEngine.class.getName());
+    static final Logger logger = LoggerFactory.getLogger(AbstractOpenTracingEngine.class.getName());
 
     /**
      * Constructor for this abstract class to be called by the extension classes to supply the implementation specific
@@ -78,7 +72,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * @param tracer        The Tracer implementation of the underlying tracing Engine.
      * @param configuration The configuration parameters for the caches.
      */
-    AbstractTracingEngine(final Tracer tracer, final CacheConfiguration configuration) {
+    AbstractOpenTracingEngine(final Tracer tracer, final CacheConfiguration configuration) {
         this.tracer = tracer;
         this.spanIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
                 .maximumSize(configuration.getMaximumSize()).build();
@@ -293,7 +287,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     /**
      * Finishes span after the {@link CompletableFuture} has completed, either successfully or exceptionally.
      *
-     * <p>Similar to {@link AbstractTracingEngine#finishPromiseSpan(Supplier, Span)} but for {@link CompletableFuture}
+     * <p>Similar to {@link AbstractOpenTracingEngine#finishPromiseSpan(Supplier, Span)} but for {@link CompletableFuture}
      *
      * @param toTraceAsync The {@link CompletableFuture} to which the callback will be attached.
      * @param span         The span that is wrapping the execution and should be finished.
@@ -320,7 +314,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     /**
      * Finishes span after the {@link CompletableFuture} has completed, either successfully or exceptionally.
      *
-     * <p>Similar to {@link AbstractTracingEngine#finishPromiseSpan(Supplier, Span)} but for {@link CompletableFuture}
+     * <p>Similar to {@link AbstractOpenTracingEngine#finishPromiseSpan(Supplier, Span)} but for {@link CompletableFuture}
      *
      * @param toTraceAsync The {@link CompletableFuture} to which the callback will be attached.
      * @param span         The span that is wrapping the execution and should be finished.
@@ -339,7 +333,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     /**
      * Attaches callback to finish span after the {@link Promise} has completed.
      *
-     * <p>Similar to {@link AbstractTracingEngine#finishFutureSpan(CompletableFuture, Span)} but for {@link Promise}
+     * <p>Similar to {@link AbstractOpenTracingEngine#finishFutureSpan(CompletableFuture, Span)} but for {@link Promise}
      *
      * @param toTraceAsync The {@link Promise} to which the callback will be attached.
      * @param span         The span that is wrapping the execution and should be finished.
@@ -358,7 +352,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
     /**
      * Attaches callback to finish span after the {@link Promise} has completed.
      *
-     * <p>Similar to {@link AbstractTracingEngine#finishFutureSpan(CompletableFuture, Span)} but for {@link Promise}
+     * <p>Similar to {@link AbstractOpenTracingEngine#finishFutureSpan(CompletableFuture, Span)} but for {@link Promise}
      *
      * @param toTraceAsync The {@link Promise} to which the callback will be attached.
      * @param span         The span that is wrapping the execution and should be finished.
@@ -376,7 +370,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * Closes the enclosing scope when the supplied is finished, regardless of whether it finished correctly or
      * exceptionally.
      *
-     * <p>Similar to {@link AbstractTracingEngine#traceSafely(Runnable, Span)} but returning a value.
+     * <p>Similar to {@link AbstractOpenTracingEngine#traceSafely(Runnable, Span)} but returning a value.
      *
      * @param toTrace The method that should be executed and traced.
      * @param span    The tracing span that encloses this method.
@@ -398,7 +392,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * Closes the enclosing scope when the supplied is finished, regardless of whether it finished correctly or
      * exceptionally.
      *
-     * <p>Similar to {@link AbstractTracingEngine#traceSafely(Runnable, Span)} but returning a value.
+     * <p>Similar to {@link AbstractOpenTracingEngine#traceSafely(Runnable, Span)} but returning a value.
      *
      * @param toTrace The method that should be executed and traced.
      * @param span    The tracing span that encloses this method.
@@ -419,7 +413,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * Closes the enclosing scope when the supplied is finished, regardless of whether it finished correctly or
      * exceptionally.
      *
-     * <p>Similar to {@link AbstractTracingEngine#traceSafelyAndReturn(Supplier, Span)} but returning nothing.
+     * <p>Similar to {@link AbstractOpenTracingEngine#traceSafelyAndReturn(Supplier, Span)} but returning nothing.
      *
      * @param toTrace The method that should be executed and traced.
      * @param span    The tracing span that encloses this method.
@@ -437,7 +431,7 @@ public abstract class AbstractTracingEngine implements TracingOpenWithContext, T
      * Closes the enclosing scope when the supplied is finished, regardless of whether it finished correctly or
      * exceptionally.
      *
-     * <p>Similar to {@link AbstractTracingEngine#traceSafelyAndReturn(Supplier, Span)} but returning nothing.
+     * <p>Similar to {@link AbstractOpenTracingEngine#traceSafelyAndReturn(Supplier, Span)} but returning nothing.
      *
      * @param toTrace The method that should be executed and traced.
      * @param span    The tracing span that encloses this method.

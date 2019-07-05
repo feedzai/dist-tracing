@@ -1,20 +1,17 @@
 /*
+ * Copyright 2018 Feedzai
  *
- *  * Copyright 2019 Feedzai
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.feedzai.commons.tracing.api;
@@ -89,6 +86,7 @@ public interface TracingWithId {
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
      * @param eventId      The ID that represents a request throughout the whole execution.
+     * @param <R>         The Return type of the traced code.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId);
@@ -134,6 +132,7 @@ public interface TracingWithId {
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
      * @param eventId     The ID that represents a request throughout the whole execution.
+     * @param <R>         The Return type of the traced code.
      * @return What was to be returned by the traced code.
      */
     <R> CompletableFuture newProcessFuture(final Supplier<CompletableFuture<R>> toTrace, final String description,
@@ -149,6 +148,7 @@ public interface TracingWithId {
      * @param toTrace     The code that should be traced.
      * @param description The description/name of the new context.
      * @param eventId     The ID that represents a request throughout the whole execution.
+     * @param <R>         The Return type of the traced code.
      * @return What was to be returned by the traced code.
      */
     <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description, final String eventId);
@@ -209,6 +209,7 @@ public interface TracingWithId {
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
      * @param eventId      The ID that represents a request throughout the whole execution.
+     * @param <R>         The Return type of the traced code.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId);

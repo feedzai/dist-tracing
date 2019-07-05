@@ -1,29 +1,29 @@
 /*
+ * Copyright 2018 Feedzai
  *
- *  * Copyright 2019 Feedzai
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.feedzai.commons.tracing.engine;import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.api.TracingOpen;
-import com.feedzai.commons.tracing.api.TracingOpenWithContext;
-import com.feedzai.commons.tracing.api.TracingOpenWithId;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
+import io.opentracing.noop.NoopSpan;
+import io.opentracing.noop.NoopTracerFactory;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  *
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, TracingOpenWithId {
+public class NoopTracingEngine implements TracingEngine {
 
     /**
      * Null trace context to be used wherever is needed, since the logs won't take into account the causality between
@@ -172,7 +172,7 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
 
     @Override
     public Serializable serializeContext() {
-        return "";
+        return new HashMap<>();
     }
 
     @Override
@@ -198,7 +198,6 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     @Override
     public void newTrace(Runnable toTrace, String description) {
         toTrace.run();
-
     }
 
     @Override
@@ -311,5 +310,15 @@ public class NoopTracingEngine implements TracingOpenWithContext, TracingOpen, T
     @Override
     public boolean traceHasStarted(String eventId) {
         return false;
+    }
+
+    @Override
+    public Tracer getTracer() {
+        return NoopTracerFactory.create();
+    }
+
+    @Override
+    public Span currentSpan() {
+        return NoopSpan.INSTANCE;
     }
 }
