@@ -114,10 +114,10 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
     }
 
     /**
-     * Tracer.
+     * Serializes the context associated to a specific eventID.
      *
-     * @param id A.
-     * @return Result.
+     * @param id The event ID.
+     * @return The serialized context.
      */
     public Map<String, String> serializeContextForId(final String id) {
         final HashMap<String, String> map = new HashMap<>();
