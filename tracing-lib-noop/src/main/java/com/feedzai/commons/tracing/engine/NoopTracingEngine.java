@@ -24,6 +24,7 @@ import io.opentracing.noop.NoopTracerFactory;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -171,12 +172,12 @@ public class NoopTracingEngine implements TracingEngine {
     }
 
     @Override
-    public Serializable serializeContext() {
+    public Map<String, String> serializeContext() {
         return new HashMap<>();
     }
 
     @Override
-    public TraceContext deserializeContext(Serializable headers) {
+    public TraceContext deserializeContext(final Map<String, String> headers) {
         return TRACE_CONTEXT;
     }
 

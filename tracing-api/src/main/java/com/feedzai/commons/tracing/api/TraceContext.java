@@ -30,6 +30,4 @@ public interface TraceContext<T> {
      */
     T get();
 
-
-
 }

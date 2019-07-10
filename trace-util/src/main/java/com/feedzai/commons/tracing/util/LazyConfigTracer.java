@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -156,6 +157,10 @@ public class LazyConfigTracer implements TracingEngine {
     @Override
     public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description) {
         return getEngine().addToTraceOpen(toTraceAsync, value, description);
+
+
+
+
     }
 
     @Override
@@ -258,12 +263,12 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public Serializable serializeContext() {
+    public Map<String, String> serializeContext() {
         return this.getEngine().serializeContext();
     }
 
     @Override
-    public TraceContext deserializeContext(final Serializable headers) {
+    public TraceContext deserializeContext(final Map<String, String> headers) {
         return this.getEngine().deserializeContext(headers);
     }
 
