@@ -157,10 +157,6 @@ public class LazyConfigTracer implements TracingEngine {
     @Override
     public <R> R addToTraceOpen(final Supplier<R> toTraceAsync, final Object value, final String description) {
         return getEngine().addToTraceOpen(toTraceAsync, value, description);
-
-
-
-
     }
 
     @Override
