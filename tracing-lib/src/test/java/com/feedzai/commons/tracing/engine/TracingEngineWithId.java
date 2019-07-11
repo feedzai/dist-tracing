@@ -22,6 +22,7 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class TracingEngineWithId extends AbstractOpenTracingEngineWithId {
     /**
@@ -42,12 +43,12 @@ public class TracingEngineWithId extends AbstractOpenTracingEngineWithId {
     }
 
     @Override
-    public Serializable serializeContext() {
+    public Map<String, String> serializeContext() {
         return null;
     }
 
     @Override
-    public TraceContext deserializeContext(Serializable headers) {
+    public TraceContext deserializeContext(Map<String, String> headers) {
         return null;
     }
 

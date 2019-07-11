@@ -23,6 +23,7 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -73,12 +74,12 @@ public class MockTracingEngine extends AbstractOpenTracingEngine {
 
 
     @Override
-    public Serializable serializeContext() {
+    public Map<String, String> serializeContext() {
         return null;
     }
 
     @Override
-    public TraceContext deserializeContext(Serializable headers) {
+    public TraceContext deserializeContext(Map<String, String> headers) {
         return null;
     }
 

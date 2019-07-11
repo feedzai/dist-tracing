@@ -17,6 +17,7 @@
 package com.feedzai.commons.tracing.api;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -165,7 +166,7 @@ public interface TracingWithContext extends Tracing {
      *
      * @return Return the serialized context.
      */
-    Serializable serializeContext();
+    Map<String, String> serializeContext();
 
     /**
      * Deserializes the context received from another service.
@@ -173,7 +174,7 @@ public interface TracingWithContext extends Tracing {
      * @param headers The serialized context.
      * @return The deserialized version of the context.
      */
-    TraceContext deserializeContext(final Serializable headers);
+    TraceContext deserializeContext(final Map<String, String> headers);
 
     /**
      * Returns the current active content.

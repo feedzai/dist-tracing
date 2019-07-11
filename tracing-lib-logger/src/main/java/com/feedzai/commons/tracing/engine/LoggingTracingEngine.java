@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -215,12 +216,12 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public Serializable serializeContext() {
+    public Map<String, String> serializeContext() {
         return new HashMap<>();
     }
 
     @Override
-    public TraceContext deserializeContext(final Serializable headers) {
+    public TraceContext deserializeContext(final Map<String, String> headers) {
         return TRACE_CONTEXT;
     }
 

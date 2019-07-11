@@ -29,7 +29,7 @@ public class TracingConfiguration {
     /**
      * The engine that should be used.
      */
-    public Engines activeEngine;
+    public Engines activeEngine = Engines.NOOP;
 
     /**
      * The configuration parameters for {@link com.feedzai.commons.tracing.engine.JaegerTracingEngine}.

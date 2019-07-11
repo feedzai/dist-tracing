@@ -105,7 +105,7 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
 
 
     @Override
-    public Serializable serializeContext() {
+    public Map<String, String> serializeContext() {
         final HashMap<String, String> map = new HashMap<>();
         if (GlobalTracer.isRegistered() && GlobalTracer.get().activeSpan() != null) {
             GlobalTracer.get().inject(GlobalTracer.get().activeSpan().context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
@@ -114,12 +114,12 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
     }
 
     /**
-     * Tracer.
+     * Serializes the context associated to a specific eventID.
      *
-     * @param id A.
-     * @return Result.
+     * @param id The event ID.
+     * @return The serialized context.
      */
-    public Serializable serializeContextForId(final String id) {
+    public Map<String, String> serializeContextForId(final String id) {
         final HashMap<String, String> map = new HashMap<>();
         if (GlobalTracer.isRegistered() && traceIdMappings.getIfPresent(id) != null) {
             GlobalTracer.get().inject(
@@ -150,11 +150,11 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
     }
 
     @Override
-    public TraceContext deserializeContext(final Serializable headers) {
-        final Map<String, String> textMap = ((Map<String, Object>) headers).entrySet().stream()
+    public TraceContext deserializeContext(final Map<String, String> headers) {
+        final Map<String, String> textMap = headers.entrySet().stream()
                 .filter(entry -> entry.getKey().equals(UBERCTX_NAME) || entry.getKey().equals(UBER_TRACE_ID)
                         || entry.getKey().equals(UBERCTX_ID))
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         final SpanContext context = GlobalTracer.get().extract(Format.Builtin.TEXT_MAP, new TextMap() {
             @Override
