@@ -83,7 +83,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
+    public <P extends Promise<R>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description,
                                    final String eventId) {
         final Span span = newTraceWithId(description, eventId);
         return finishParentPromiseSpan(toTraceAsync, span);
@@ -109,7 +109,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
+    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
                                      final String eventId) {
         final Span span = buildContextFromId(description, eventId);
 
@@ -146,7 +146,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description, final String eventId) {
+    public <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description, final String eventId) {
         final Span span = buildContextFromId(description, eventId);
         spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
         updateSpanMappings(span);
@@ -154,7 +154,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                              final String description,
                                              final String eventId) {
         final Span span = buildContextFromId(description, eventId);
