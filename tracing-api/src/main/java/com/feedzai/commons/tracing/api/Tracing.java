@@ -80,6 +80,7 @@ public interface Tracing {
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
      * @param <R>          The Return type of the traced code.
+     * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     <P extends Promise<R>, R> P newTracePromise(Supplier<P> toTraceAsync, String description);
@@ -133,6 +134,7 @@ public interface Tracing {
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
      * @param <R>          The Return type of the traced code.
+     * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description);

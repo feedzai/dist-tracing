@@ -87,6 +87,7 @@ public interface TracingWithId {
      * @param description  The description or name that best describes this operation.
      * @param eventId      The ID that represents a request throughout the whole execution.
      * @param <R>         The Return type of the traced code.
+     * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     <P extends Promise<R>, R> P newTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
@@ -149,6 +150,7 @@ public interface TracingWithId {
      * @param description The description/name of the new context.
      * @param eventId     The ID that represents a request throughout the whole execution.
      * @param <R>         The Return type of the traced code.
+     * @param <P>          The class implementing {@link Promise}
      * @return What was to be returned by the traced code.
      */
     <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description, final String eventId);
@@ -210,6 +212,7 @@ public interface TracingWithId {
      * @param description  The description or name that best describes this operation.
      * @param eventId      The ID that represents a request throughout the whole execution.
      * @param <R>         The Return type of the traced code.
+     * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
     <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
