@@ -44,9 +44,10 @@ public interface TracingOpenWithId extends TracingWithId {
      * @param object       A uniquely identifying object that can be matched to this span and used to retrieve it when
      *                     it is time to finish it.
      * @param eventId      The ID that represents a request throughout the whole execution.
+     * @param <P>          The class implementing {@link Promise}
      * @return What was to be returned by the traced code.
      */
-    <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                       final String description,
                                       final String eventId);
 

@@ -38,11 +38,12 @@ public interface TracingOpen extends Tracing {
      * @param <R>          The return type.
      * @param toTraceAsync The code that should be traced.
      * @param description  The description/name of the new context.
+     * @param <P>          The class implementing {@link Promise}
      * @param object       A uniquely identifying object that can be matched to this span and used to retrieve it when
      *                     it is time to finish it.
      * @return What was to be returned by the traced code.
      */
-    <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                       final String description);
 
     /**

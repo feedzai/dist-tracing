@@ -80,9 +80,10 @@ public interface Tracing {
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
      * @param <R>          The Return type of the traced code.
+     * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description);
+    <P extends Promise<R>, R> P newTracePromise(Supplier<P> toTraceAsync, String description);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -133,9 +134,10 @@ public interface Tracing {
      * @param toTraceAsync Lambda containing the code that should be wrapped in a trace.
      * @param description  The description or name that best describes this operation.
      * @param <R>          The Return type of the traced code.
+     * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description);
+    <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description);
 
     /**
      * Returns whether or not there is a currently active span.

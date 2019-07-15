@@ -45,10 +45,11 @@ public interface TracingOpenWithContext extends TracingWithContext {
      * @param description  The description/name of the new context.
      * @param object       A uniquely identifying object that can be matched to this span and used to retrieve it when
      *                     it is time to finish it.
+     * @param <P>          The class implementing {@link Promise}
      * @param context      Represents the context of the current execution.
      * @return What was to be returned by the traced code.
      */
-    <R> Promise<R> addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                       final String description,
                                       final TraceContext context);
 

@@ -101,7 +101,7 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
+    public <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
                                   final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
         spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
@@ -120,7 +120,7 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                              final String description,
                                              final TraceContext context) {
         final Span span = buildActiveSpanAsChild(description, (SpanTraceContext) context);
@@ -129,7 +129,7 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <R> Promise addToTraceOpenPromise(final Supplier<Promise<R>> toTraceAsync, final Object object,
+    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                              final String description) {
         final Span span = buildActiveSpan(description);
         responseMappings.put(object, span);
@@ -213,7 +213,7 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
 
 
     @Override
-    public <R> Promise<R> newTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
+    public <P extends Promise<R>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description) {
         final Span span = buildActiveParentSpan(description);
         return finishParentPromiseSpan(toTraceAsync, span);
     }
@@ -261,14 +261,14 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description) {
+    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description) {
         final Span span = buildActiveSpan(description);
         return finishPromiseSpan(toTraceAsync, span);
     }
 
 
     @Override
-    public <R> Promise<R> addToTracePromise(final Supplier<Promise<R>> toTraceAsync, final String description,
+    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
                                      final TraceContext context) {
         final Span span = buildSpanFromAsyncContext(description, (SpanTraceContext) context);
         return finishPromiseSpan(toTraceAsync, span);
@@ -339,7 +339,7 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @param span         The span that is wrapping the execution and should be finished.
      * @return the same {@link Promise} that was passed in {@code toTraceAsync}
      */
-    <R> Promise<R> finishPromiseSpan(final Supplier<Promise<R>> toTraceAsync, final Span span) {
+    <P extends Promise<R>, R> P finishPromiseSpan(final Supplier<P> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
             popSpanForTraceId(span);
@@ -358,7 +358,7 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @param span         The span that is wrapping the execution and should be finished.
      * @return the same {@link Promise} that was passed in {@code toTraceAsync}
      */
-    <R> Promise<R> finishParentPromiseSpan(final Supplier<Promise<R>> toTraceAsync, final Span span) {
+    <P extends Promise<R>, R> P finishParentPromiseSpan(final Supplier<P> toTraceAsync, final Span span) {
         return toTraceAsync.get().onCompletePromise(x -> {
             span.finish();
         }).onErrorPromise(x -> {
