@@ -32,14 +32,14 @@ public class MockPromise implements Promise<String> {
     }
 
     @Override
-    public Promise onCompletePromise(Consumer<String> callOnCompletion) {
+    public <P extends Promise<R>, R> P onCompletePromise(Consumer<String> callOnCompletion) {
         this.callOnCompletion = callOnCompletion;
-        return this;
+        return (P) this;
     }
 
     @Override
-    public Promise onErrorPromise(Consumer<Throwable> callOnError) {
+    public <P extends Promise<R>, R> P onErrorPromise(Consumer<Throwable> callOnError) {
         this.callOnError = callOnError;
-        return this;
+        return (P) this;
     }
 }

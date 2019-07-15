@@ -89,7 +89,7 @@ public interface TracingWithId {
      * @param <R>         The Return type of the traced code.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId);
+    <P extends Promise<R>, R> P newTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
 
     /**
      * Creates a new Span that is the root of this process's portion of the trace. Similarly to {@link
@@ -151,7 +151,7 @@ public interface TracingWithId {
      * @param <R>         The Return type of the traced code.
      * @return What was to be returned by the traced code.
      */
-    <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description, final String eventId);
+    <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description, final String eventId);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -212,7 +212,7 @@ public interface TracingWithId {
      * @param <R>         The Return type of the traced code.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId);
+    <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
 
 
 

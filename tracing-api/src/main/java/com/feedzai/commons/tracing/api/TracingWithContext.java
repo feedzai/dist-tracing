@@ -75,7 +75,7 @@ public interface TracingWithContext extends Tracing {
      * @param <R>         The Return type of the traced code.
      * @return The instrumented Promise.
      */
-    <R> Promise<R> newProcessPromise(final Supplier<Promise<R>> toTrace, final String description,
+    <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
                                      final TraceContext context);
 
     /**
@@ -157,7 +157,7 @@ public interface TracingWithContext extends Tracing {
      * @param <R>         The Return type of the traced code.
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, TraceContext context);
+    <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description, TraceContext context);
 
 
     /**

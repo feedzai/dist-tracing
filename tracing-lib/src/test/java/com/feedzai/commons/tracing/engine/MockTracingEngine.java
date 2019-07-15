@@ -47,7 +47,7 @@ public class MockTracingEngine extends AbstractOpenTracingEngine {
     }
 
     @Override
-    public <R> Promise<R> addToTraceOpenPromise(Supplier<Promise<R>> toTraceAsync, Object object,
+    public <P extends Promise<R>, R> P addToTraceOpenPromise(Supplier<P> toTraceAsync, Object object,
                                              String description, String eventId) {
         return null;
     }
@@ -100,7 +100,7 @@ public class MockTracingEngine extends AbstractOpenTracingEngine {
     }
 
     @Override
-    public <R> Promise<R> newTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
+    public <P extends Promise<R>, R> P newTracePromise(Supplier<P> toTraceAsync, String description, String eventId) {
         return null;
     }
 
@@ -121,7 +121,7 @@ public class MockTracingEngine extends AbstractOpenTracingEngine {
     }
 
     @Override
-    public <R> Promise<R> newProcessPromise(Supplier<Promise<R>> toTrace, String description, String eventId) {
+    public <P extends Promise<R>, R> P newProcessPromise(Supplier<P> toTrace, String description, String eventId) {
         return null;
     }
 
@@ -142,7 +142,7 @@ public class MockTracingEngine extends AbstractOpenTracingEngine {
     }
 
     @Override
-    public <R> Promise<R> addToTracePromise(Supplier<Promise<R>> toTraceAsync, String description, String eventId) {
+    public <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description, String eventId) {
         return null;
     }
 
