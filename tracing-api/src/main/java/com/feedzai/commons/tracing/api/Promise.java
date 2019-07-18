@@ -24,7 +24,7 @@ import java.util.function.Consumer;
  * @param <T> The type consumed by the onComplete method.
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public interface Promise<T, P extends Promise<T, P>> {
+public interface Promise<T, P extends Promise<T, P, E>, E extends Throwable> {
 
 
     /**
@@ -43,7 +43,7 @@ public interface Promise<T, P extends Promise<T, P>> {
      *                    implementing {@link Promise}
      * @return This {@link Promise}
      */
-    P onErrorPromise(Consumer<Throwable> callOnError);
+    P onErrorPromise(Consumer<E> callOnError);
 
 
 

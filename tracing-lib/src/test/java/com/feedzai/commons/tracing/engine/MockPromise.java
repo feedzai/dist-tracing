@@ -20,7 +20,7 @@ import com.feedzai.commons.tracing.api.Promise;
 
 import java.util.function.Consumer;
 
-public class MockPromise implements Promise<String, MockPromise> {
+public class MockPromise implements Promise<String, MockPromise, Throwable> {
 
     Consumer callOnCompletion;
     Consumer callOnError;

@@ -83,7 +83,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <P extends Promise<R, P>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description,
                                                           final String eventId) {
         final Span span = newTraceWithId(description, eventId);
         return finishParentPromiseSpan(toTraceAsync, span);
@@ -109,7 +109,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <P extends Promise<R, P>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
                                                             final String eventId) {
         final Span span = buildActiveContextFromId(description, eventId);
 
@@ -147,7 +147,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <P extends Promise<R, P>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
                                                             final String eventId) {
         final Span span = buildActiveContextFromId(description, eventId);
         spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
@@ -156,7 +156,7 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
     }
 
     @Override
-    public <P extends Promise<R, P>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                                                 final String description,
                                                                 final String eventId) {
         final Span span = buildContextFromId(description, eventId);

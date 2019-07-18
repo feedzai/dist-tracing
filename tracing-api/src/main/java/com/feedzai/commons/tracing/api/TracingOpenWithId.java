@@ -47,7 +47,7 @@ public interface TracingOpenWithId extends TracingWithId {
      * @param <P>          The class implementing {@link Promise}
      * @return What was to be returned by the traced code.
      */
-    <P extends Promise<R,P>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    <E extends Throwable, P extends Promise<R, P, E>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                       final String description,
                                       final String eventId);
 
