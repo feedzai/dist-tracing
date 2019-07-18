@@ -20,7 +20,7 @@ import com.feedzai.commons.tracing.api.Promise;
 
 import java.util.function.Consumer;
 
-public class MockPromise implements Promise<String> {
+public class MockPromise implements Promise<String, MockPromise> {
 
     Consumer callOnCompletion;
     Consumer callOnError;
@@ -32,14 +32,14 @@ public class MockPromise implements Promise<String> {
     }
 
     @Override
-    public <P extends Promise<R>, R> P onCompletePromise(Consumer<String> callOnCompletion) {
+    public MockPromise onCompletePromise(Consumer<String> callOnCompletion) {
         this.callOnCompletion = callOnCompletion;
-        return (P) this;
+        return this;
     }
 
     @Override
-    public <P extends Promise<R>, R> P onErrorPromise(Consumer<Throwable> callOnError) {
+    public MockPromise onErrorPromise(Consumer<Throwable> callOnError) {
         this.callOnError = callOnError;
-        return (P) this;
+        return this;
     }
 }

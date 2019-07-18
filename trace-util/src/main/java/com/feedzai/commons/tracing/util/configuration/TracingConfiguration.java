@@ -36,4 +36,11 @@ public class TracingConfiguration {
      */
     public JaegerConfiguration jaegerConfiguration;
 
+    @Override
+    public String toString() {
+        return "TracingConfiguration{" +
+                "activeEngine=" + activeEngine +
+                ", jaegerConfiguration=" + jaegerConfiguration +
+                '}';
+    }
 }

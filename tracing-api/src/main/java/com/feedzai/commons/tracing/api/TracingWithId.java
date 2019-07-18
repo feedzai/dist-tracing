@@ -90,7 +90,7 @@ public interface TracingWithId {
      * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <P extends Promise<R>, R> P newTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
+    <P extends Promise<R,P>, R> P newTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
 
     /**
      * Creates a new Span that is the root of this process's portion of the trace. Similarly to {@link
@@ -153,7 +153,7 @@ public interface TracingWithId {
      * @param <P>          The class implementing {@link Promise}
      * @return What was to be returned by the traced code.
      */
-    <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description, final String eventId);
+    <P extends Promise<R,P>, R> P newProcessPromise(final Supplier<P> toTrace, final String description, final String eventId);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -215,7 +215,7 @@ public interface TracingWithId {
      * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
+    <P extends Promise<R,P>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description, String eventId);
 
 
 

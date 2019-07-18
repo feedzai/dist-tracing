@@ -56,7 +56,7 @@ public class LoggingTracingEngine implements TracingEngine {
 
 
     @Override
-    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    public <P extends Promise<R,P>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                                 final String description) {
         return logPromise(toTraceAsync, description, Optional.empty());
 
@@ -89,7 +89,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    public <P extends Promise<R,P>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                                 final String description, final String eventId) {
         return logPromise(toTraceAsync, description, Optional.empty());
     }
@@ -125,7 +125,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    public <P extends Promise<R,P>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                                 final String description, final TraceContext context) {
         return logPromise(toTraceAsync, description, Optional.empty());
     }
@@ -172,7 +172,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
+    public <P extends Promise<R,P>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
                                             final TraceContext context) {
         return logPromise(toTrace, description, Optional.empty());
     }
@@ -210,7 +210,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
+    public <P extends Promise<R,P>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
                                             final TraceContext context) {
         return logPromise(toTraceAsync, description, Optional.empty());
     }
@@ -257,7 +257,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description) {
+    public <P extends Promise<R,P>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description) {
         return logPromise(toTraceAsync, description, Optional.empty());
     }
 
@@ -283,7 +283,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description) {
+    public <P extends Promise<R,P>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description) {
         return logPromise(toTraceAsync, description, Optional.empty());
 
     }
@@ -316,7 +316,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description,
+    public <P extends Promise<R,P>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description,
                                           final String eventId) {
         return logPromise(toTraceAsync, description, Optional.of(eventId));
 
@@ -345,7 +345,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
+    public <P extends Promise<R,P>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
                                             final String eventId) {
         return logPromise(toTrace, description, Optional.of(eventId));
     }
@@ -379,7 +379,7 @@ public class LoggingTracingEngine implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
+    public <P extends Promise<R,P>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
                                             final String eventId) {
         return logPromise(toTraceAsync, description, Optional.of(eventId));
     }
@@ -391,9 +391,9 @@ public class LoggingTracingEngine implements TracingEngine {
      * @param <R> The return type.
      * @return Whatever would be returned by the Promise.
      */
-    private <P extends Promise<R>, R> P logPromise(Supplier<P> toTraceAsync, String description, Optional<String> eventId) {
+    private <P extends Promise<R,P>, R> P logPromise(Supplier<P> toTraceAsync, String description, Optional<String> eventId) {
         final double start = System.nanoTime();
-        final Promise<R> promise = toTraceAsync.get();
+        final P promise = toTraceAsync.get();
         promise.onErrorPromise(throwable -> logMessage(description, start, eventId));
         promise.onCompletePromise(throwable -> logMessage(description, start, eventId));
         return toTraceAsync.get();
