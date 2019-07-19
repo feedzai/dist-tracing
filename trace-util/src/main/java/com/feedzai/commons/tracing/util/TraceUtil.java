@@ -15,6 +15,7 @@
  */
 
 package com.feedzai.commons.tracing.util;
+import com.feedzai.commons.tracing.engine.NoopTracingEngine;
 import com.feedzai.commons.tracing.engine.TracingEngine;
 
 /**
@@ -28,7 +29,7 @@ public class TraceUtil {
     /**
      * The tracer engine.
      */
-    private static volatile TracingEngine engine;
+    private static volatile TracingEngine engine = new NoopTracingEngine();
 
     private TraceUtil(){}
 
