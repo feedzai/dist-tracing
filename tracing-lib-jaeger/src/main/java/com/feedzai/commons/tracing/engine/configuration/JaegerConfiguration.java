@@ -48,4 +48,14 @@ public class JaegerConfiguration {
      */
     public String ip;
 
+    @Override
+    public String toString() {
+        return "JaegerConfiguration{" +
+                "cacheDurationInMinutes=" + cacheDurationInMinutes +
+                ", cacheMaxSize=" + cacheMaxSize +
+                ", sampleRate=" + sampleRate +
+                ", processName='" + processName + '\'' +
+                ", ip='" + ip + '\'' +
+                '}';
+    }
 }

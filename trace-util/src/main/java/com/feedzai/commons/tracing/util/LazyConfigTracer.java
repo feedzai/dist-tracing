@@ -138,7 +138,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                                 final String description) {
         return getEngine().addToTraceOpenPromise(toTraceAsync, object, description);
     }
@@ -160,7 +160,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                                 final String description, final String eventId) {
         return getEngine().addToTraceOpenPromise(toTraceAsync, object, description, eventId);
     }
@@ -190,7 +190,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTraceOpenPromise(final Supplier<P> toTraceAsync, final Object object,
                                                 final String description, final TraceContext context) {
         return this.getEngine().addToTraceOpenPromise(toTraceAsync, object, description, context);
     }
@@ -225,7 +225,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
                                             final TraceContext context) {
         return this.getEngine().newProcessPromise(toTrace, description, context);
     }
@@ -253,7 +253,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description,
                                             final TraceContext context) {
         return this.getEngine().addToTracePromise(toTraceAsync, description, context);
     }
@@ -294,7 +294,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description) {
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description) {
         return this.getEngine().newTracePromise(toTraceAsync, description);
     }
 
@@ -314,7 +314,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description) {
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description) {
         return this.getEngine().addToTracePromise(toTraceAsync, description);
     }
 
@@ -340,7 +340,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description, final String eventId) {
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P newTracePromise(final Supplier<P> toTraceAsync, final String description, final String eventId) {
         return this.getEngine().newTracePromise(toTraceAsync, description, eventId);
     }
 
@@ -361,7 +361,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P newProcessPromise(final Supplier<P> toTrace, final String description,
                                             final String eventId) {
         return this.getEngine().newProcessPromise(toTrace, description, eventId);
     }
@@ -383,7 +383,7 @@ public class LazyConfigTracer implements TracingEngine {
     }
 
     @Override
-    public <P extends Promise<R>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description, final String eventId) {
+    public <E extends Throwable, P extends Promise<R, P, E>, R> P addToTracePromise(final Supplier<P> toTraceAsync, final String description, final String eventId) {
         return this.getEngine().addToTracePromise(toTraceAsync, description, eventId);
     }
 

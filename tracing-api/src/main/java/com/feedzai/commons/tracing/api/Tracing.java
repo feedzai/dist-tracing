@@ -83,7 +83,7 @@ public interface Tracing {
      * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <P extends Promise<R>, R> P newTracePromise(Supplier<P> toTraceAsync, String description);
+    <E extends Throwable, P extends Promise<R, P, E>, R> P newTracePromise(Supplier<P> toTraceAsync, String description);
 
     /**
      * Traces operations that return a value of any type. This method will add a Span to an existing trace which will
@@ -137,7 +137,7 @@ public interface Tracing {
      * @param <P>          The class implementing {@link Promise}
      * @return Returns the {@link Promise} the traced code would've returned.
      */
-    <P extends Promise<R>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description);
+    <E extends Throwable, P extends Promise<R, P, E>, R> P addToTracePromise(Supplier<P> toTraceAsync, String description);
 
     /**
      * Returns whether or not there is a currently active span.

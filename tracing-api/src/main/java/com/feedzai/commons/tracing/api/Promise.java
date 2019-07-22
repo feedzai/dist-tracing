@@ -24,7 +24,7 @@ import java.util.function.Consumer;
  * @param <T> The type consumed by the onComplete method.
  * @author Gonçalo Garcia (goncalo.garcia@feedzai.com)
  */
-public interface Promise<T> {
+public interface Promise<T, P extends Promise<T, P, E>, E extends Throwable> {
 
 
     /**
@@ -33,7 +33,7 @@ public interface Promise<T> {
      * @param callOnCompletion Lambda that represents the method that should be executed upon completion
      * @return This {@link Promise}
      */
-    <P extends Promise<R>, R> P onCompletePromise(Consumer<T> callOnCompletion);
+    P onCompletePromise(Consumer<T> callOnCompletion);
 
     /**
      * Registers a method to be called by the {@link Promise} when the result of the computation terminates with an
@@ -43,7 +43,7 @@ public interface Promise<T> {
      *                    implementing {@link Promise}
      * @return This {@link Promise}
      */
-    <P extends Promise<R>, R> P onErrorPromise(Consumer<Throwable> callOnError);
+    P onErrorPromise(Consumer<E> callOnError);
 
 
 
