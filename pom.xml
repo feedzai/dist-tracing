@@ -221,6 +221,12 @@
                 <groupId>io.jaegertracing</groupId>
                 <artifactId>jaeger-client</artifactId>
                 <version>${jaeger.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.jaegertracing</groupId>
+                        <artifactId>jaeger-thrift</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.opentracing</groupId>
