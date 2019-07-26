@@ -12,7 +12,14 @@ after_success:
   - bash <(curl -s https://codecov.io/bash)
 
 deploy:
-  provider: script
-  script: deploy/deploy.sh
-  on:
-    tags: true
+  #Deploy to github pages
+  - provider: script
+    script: deploy/update-docs.sh
+    on:
+      branch: master
+  #Deploy to Sonatype
+  - provider: script
+    script: deploy/deploy.sh
+    on:
+      tags: true
+
