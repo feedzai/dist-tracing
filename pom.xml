@@ -40,7 +40,7 @@
 
     <name>Tracing Library</name>
     <description>Group of modules related with the Tracing Library</description>
-    <url>https://github.com/GoncaloGarcia/DistTracing</url>
+    <url>https://github.com/feedzai/dist-tracing</url>
 
     <organization>
         <name>Feedzai</name>
@@ -57,19 +57,19 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/GoncaloGarcia/DistTracing/issues</url>
+        <url>https://github.com/feedzai/dist-tracing/issues</url>
     </issueManagement>
 
     <scm>
-        <url>https://github.com/feedzai/feedzai-openml</url>
-        <developerConnection>scm:git:git@github.com:GoncaloGarcia/DistTracing.git</developerConnection>
+        <url>https://github.com/feedzai/dist-tracing</url>
+        <developerConnection>git@github.com:feedzai/dist-tracing.git</developerConnection>
     </scm>
 
     <developers>
         <developer>
             <name>Gonçalo Garcia</name>
             <organization>Feedzai</organization>
-            <url>https://github.com/GoncaloGarcia/DistTracing/issues</url>
+            <url>https://github.com/feedzai/dist-tracing/issues</url>
         </developer>
     </developers>
 
