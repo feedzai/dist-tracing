@@ -121,8 +121,8 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
      */
     public Map<String, String> serializeContextForId(final String id) {
         final HashMap<String, String> map = new HashMap<>();
-        if (GlobalTracer.isRegistered() && traceIdMappings.getIfPresent(id) != null) {
-            GlobalTracer.get().inject(
+        if (traceIdMappings.getIfPresent(id) != null && spanIdMappings.getIfPresent(traceIdMappings.getIfPresent(id)).peek() != null) {
+            tracer.inject(
                     spanIdMappings.getIfPresent(traceIdMappings.getIfPresent(id)).peek().context(),
                     Format.Builtin.TEXT_MAP, implementTextMap(map));
         }
