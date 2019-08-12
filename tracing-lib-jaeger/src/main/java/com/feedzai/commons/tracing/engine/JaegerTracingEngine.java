@@ -107,8 +107,8 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
     @Override
     public Map<String, String> serializeContext() {
         final HashMap<String, String> map = new HashMap<>();
-        if (GlobalTracer.isRegistered() && GlobalTracer.get().activeSpan() != null) {
-            GlobalTracer.get().inject(GlobalTracer.get().activeSpan().context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
+        if (this.currentSpan() != null) {
+            tracer.inject(this.currentSpan().context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
         }
         return map;
     }
