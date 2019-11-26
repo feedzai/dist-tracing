@@ -17,8 +17,7 @@
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
-import io.opentracing.Span;
+import com.feedzai.commons.tracing.engine.configuration.BaseConfiguration;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import org.junit.Assert;
@@ -43,7 +42,7 @@ public class AbstractOpenTracingEngineWithIdTest {
     @Before
     public void initializeTracer() {
         mockTracer = new MockTracer();
-        tracing = new TracingEngineWithId(mockTracer, new CacheConfiguration(Duration.ofDays(1), 10000));
+        tracing = new TracingEngineWithId(mockTracer, new BaseConfiguration(Duration.ofDays(1), 10000, 1));
     }
 
 

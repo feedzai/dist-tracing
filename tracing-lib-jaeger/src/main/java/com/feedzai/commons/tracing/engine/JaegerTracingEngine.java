@@ -17,7 +17,7 @@
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.feedzai.commons.tracing.engine.configuration.BaseConfiguration;
 import com.feedzai.commons.tracing.engine.configuration.JaegerConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -33,7 +33,6 @@ import io.opentracing.propagation.Format;
 import io.opentracing.propagation.TextMap;
 import io.opentracing.util.GlobalTracer;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -77,7 +76,7 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
      */
     @VisibleForTesting
     JaegerTracingEngine(final Tracer tracer,
-                        final CacheConfiguration configuration) {
+                        final BaseConfiguration configuration) {
         super(tracer, configuration);
     }
 
@@ -121,9 +120,11 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
      */
     public Map<String, String> serializeContextForId(final String id) {
         final HashMap<String, String> map = new HashMap<>();
-        if (traceIdMappings.getIfPresent(id) != null && spanIdMappings.getIfPresent(traceIdMappings.getIfPresent(id)).peek() != null) {
+        String traceID = traceIdMappings.getIfPresent(id);
+        LinkedList<Span> spans = spanIdMappings.getIfPresent(traceID);
+        if (traceID != null && spans.peek() != null) {
             tracer.inject(
-                    spanIdMappings.getIfPresent(traceIdMappings.getIfPresent(id)).peek().context(),
+                    spanIdMappings.getIfPresent(traceID).peek().context(),
                     Format.Builtin.TEXT_MAP, implementTextMap(map));
         }
         return map;
@@ -170,7 +171,7 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
         if (context == null) {
             //This is okay because creating a span as child of null creates an orphan span and does not throw an NPE.
             return new SpanTraceContext(null);
-        } else if (((JaegerSpanContext) context).getBaggageItem(EVENT_ID) != null) {
+        } else if (context instanceof JaegerSpanContext && ((JaegerSpanContext) context).getBaggageItem(EVENT_ID) != null) {
             traceIdMappings.put(((JaegerSpanContext) context).getBaggageItem(EVENT_ID), traceId);
             spanIdMappings.put(traceId, new LinkedList<>());
         }
@@ -180,9 +181,12 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
 
     @Override
     protected String getTraceIdFromSpan(final Span span) {
-        final HashMap<String, String> map = new HashMap<>();
-        tracer.inject(span.context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
-        return map.get(UBER_TRACE_ID).split(":")[0];
+        if(span.getBaggageItem("sampled") != null && span.getBaggageItem("sampled").equals("true")) {
+            final HashMap<String, String> map = new HashMap<>();
+            tracer.inject(span.context(), Format.Builtin.TEXT_MAP, implementTextMap(map));
+            return map.get(UBER_TRACE_ID).split(":")[0];
+        }
+        return "1:2:3";
     }
 
     /**
@@ -306,7 +310,7 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
          */
         public JaegerTracingEngine build() {
             final Tracer tracer = initTracer(ip, processName, sampleRate);
-            final CacheConfiguration configuration = new CacheConfiguration(cacheDuration, cacheMaxSize);
+            final BaseConfiguration configuration = new BaseConfiguration(cacheDuration, cacheMaxSize, sampleRate);
             return new JaegerTracingEngine(tracer, configuration);
         }
 
@@ -327,7 +331,7 @@ public class JaegerTracingEngine extends AbstractOpenTracingEngineWithId {
             final Tracer trace = config.getTracerBuilder()
                     .withClock(new MicroClock())
                     .withReporter(reporter)
-                    .withSampler(new ProbabilisticSampler(sampleRate)).build();
+                    .withSampler(new ProbabilisticSampler(1)).build();
             if (!GlobalTracer.isRegistered()) {
                 GlobalTracer.register(trace);
             }

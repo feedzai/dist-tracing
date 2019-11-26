@@ -17,7 +17,7 @@
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
-import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.feedzai.commons.tracing.engine.configuration.BaseConfiguration;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.opentracing.Span;
@@ -57,10 +57,10 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
      * @param configuration The configuration parameters for the caches.
      */
     protected AbstractOpenTracingEngineWithId(final Tracer tracer,
-                                              final CacheConfiguration configuration) {
+                                              final BaseConfiguration configuration) {
         super(tracer, configuration);
-        this.traceIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
-                .maximumSize(configuration.getMaximumSize()).build();
+        this.traceIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getCacheExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
+                .maximumSize(configuration.getCacheMaxSize()).build();
     }
 
     @Override
@@ -277,7 +277,9 @@ public abstract class AbstractOpenTracingEngineWithId extends AbstractOpenTracin
      * @param span    the span associated to the traceID.
      */
     private void updateIdMappings(final String eventId, final Span span) {
-        this.traceIdMappings.put(eventId, getTraceIdFromSpan(span));
+        if(span.getBaggageItem("sampled") != null && span.getBaggageItem("sampled").equals("true")) {
+            this.traceIdMappings.put(eventId, getTraceIdFromSpan(span));
+        }
     }
 
     /**

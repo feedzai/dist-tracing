@@ -17,11 +17,10 @@
 package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.feedzai.commons.tracing.engine.configuration.BaseConfiguration;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 
-import java.io.Serializable;
 import java.util.Map;
 
 public class TracingEngineWithId extends AbstractOpenTracingEngineWithId {
@@ -33,7 +32,7 @@ public class TracingEngineWithId extends AbstractOpenTracingEngineWithId {
      * @param configuration The configuration parameters for the caches.
      */
     protected TracingEngineWithId(Tracer tracer,
-                                  CacheConfiguration configuration) {
+                                  BaseConfiguration configuration) {
         super(tracer, configuration);
     }
 

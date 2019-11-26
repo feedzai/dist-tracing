@@ -18,11 +18,10 @@ package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.feedzai.commons.tracing.engine.configuration.BaseConfiguration;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -37,7 +36,7 @@ public class MockTracingEngine extends AbstractOpenTracingEngine {
      * @param configuration The configuration parameters for the caches.
      */
     MockTracingEngine(Tracer tracer,
-                      CacheConfiguration configuration) {
+                      BaseConfiguration configuration) {
         super(tracer, configuration);
     }
 
