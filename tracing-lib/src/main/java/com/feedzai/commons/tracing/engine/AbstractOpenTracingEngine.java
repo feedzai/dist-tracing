@@ -18,7 +18,8 @@ package com.feedzai.commons.tracing.engine;
 
 import com.feedzai.commons.tracing.api.Promise;
 import com.feedzai.commons.tracing.api.TraceContext;
-import com.feedzai.commons.tracing.engine.configuration.CacheConfiguration;
+import com.feedzai.commons.tracing.engine.configuration.BaseConfiguration;
+import com.feedzai.commons.tracing.engine.opentracing.noop.NoopSpanImpl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.opentracing.Span;
@@ -29,8 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.StreamSupport;
 
 
 /**
@@ -57,6 +60,11 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      */
     protected final Cache<Object, Span> responseMappings;
 
+    /**
+     * The rate at which requests are sampled
+     */
+    private final double samplingRate;
+
 
     /**
      * The logger.
@@ -70,12 +78,13 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @param tracer        The Tracer implementation of the underlying tracing Engine.
      * @param configuration The configuration parameters for the caches.
      */
-    AbstractOpenTracingEngine(final Tracer tracer, final CacheConfiguration configuration) {
+    AbstractOpenTracingEngine(final Tracer tracer, final BaseConfiguration configuration) {
         this.tracer = tracer;
-        this.spanIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
-                .maximumSize(configuration.getMaximumSize()).build();
-        this.responseMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
-                .maximumSize(configuration.getMaximumSize()).weakKeys().build();
+        this.samplingRate = configuration.getSamplingRate();
+        this.spanIdMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getCacheExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
+                .maximumSize(configuration.getCacheMaxSize()).build();
+        this.responseMappings = CacheBuilder.newBuilder().expireAfterWrite(configuration.getCacheExpirationAfterWrite().toNanos(), TimeUnit.NANOSECONDS)
+                .maximumSize(configuration.getCacheMaxSize()).weakKeys().build();
     }
 
     @Override
@@ -473,7 +482,8 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
     protected void updateSpanMappings(final Span span) {
         final String traceId = getTraceIdFromSpan(span);
         final LinkedList<Span> spans = spanIdMappings.getIfPresent(traceId);
-        if (spans != null && (spans.isEmpty() || !Long.toString(Thread.currentThread().getId()).equals(spans.peek().getBaggageItem("thread-id")))) {
+        logger.trace("Updating Span Mappings");
+        if (spans != null && (spans.isEmpty() || (spans.peek() != null && !Long.toString(Thread.currentThread().getId()).equals(spans.peek().getBaggageItem("thread-id"))))) {
             try {
                 spans.push(span);
             } catch (Exception e) {
@@ -498,12 +508,17 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @return The new parent span
      */
     Span buildActiveParentSpan(final String description) {
-        final Span span = this.tracer.buildSpan(description).ignoreActiveSpan().start();
-        spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
-        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
-        this.tracer.scopeManager().activate(span, true);
-        updateSpanMappings(span);
-        return span;
+        double rand = ThreadLocalRandom.current().nextDouble();
+        if(rand <= samplingRate) {
+            final Span span = this.tracer.buildSpan(description).ignoreActiveSpan().start();
+            span.setBaggageItem("sampled", "true");
+            spanIdMappings.put(getTraceIdFromSpan(span), new LinkedList<>());
+            span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+            this.tracer.scopeManager().activate(span, true);
+            updateSpanMappings(span);
+            return span;
+        }
+            return new NoopSpanImpl();
     }
 
     /**
@@ -515,10 +530,13 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @return the new child Span.
      */
     Span buildSpanAsChild(final String description, final SpanTraceContext context) {
-        final Span span = buildSpanFromAsyncContext(description, context, false);
-        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
-        updateSpanMappings(span);
-        return span;
+        if(StreamSupport.stream(context.get().baggageItems().spliterator(), false).anyMatch(e -> e.getKey().equals("sampled"))) {
+            final Span span = buildSpanFromAsyncContext(description, context, false);
+            span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+            updateSpanMappings(span);
+            return span;
+        }
+        return new NoopSpanImpl();
     }
 
     /**
@@ -530,11 +548,15 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @return the new child Span.
      */
     Span buildActiveSpanAsChild(final String description, final SpanTraceContext context) {
-        final Span span = buildSpanFromAsyncContext(description, context, true);
-        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
-        this.tracer.scopeManager().activate(span, true);
-        updateSpanMappings(span);
-        return span;
+        if(context != null && StreamSupport.stream(context.get().baggageItems().spliterator(), false)
+                                                    .anyMatch(e -> e != null && e.getKey().equals("sampled"))) {
+            final Span span = buildSpanFromAsyncContext(description, context, true);
+            span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+            this.tracer.scopeManager().activate(span, true);
+            updateSpanMappings(span);
+            return span;
+        }
+        return new NoopSpanImpl();
     }
 
     /**
@@ -544,11 +566,14 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @return the new active span.
      */
     private Span buildActiveSpan(final String description) {
-        final Span span = this.tracer.buildSpan(description).start();
-        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
-        this.tracer.scopeManager().activate(span, true);
-        updateSpanMappings(span);
-        return span;
+        if(tracer.activeSpan().getBaggageItem("sampled") != null && tracer.activeSpan().getBaggageItem("sampled").equals("true")) {
+            final Span span = this.tracer.buildSpan(description).start();
+            span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+            this.tracer.scopeManager().activate(span, true);
+            updateSpanMappings(span);
+            return span;
+        }
+        return new NoopSpanImpl();
     }
 
     /**
@@ -558,11 +583,14 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @return the new active span.
      */
     private Span buildSpan(final String description) {
-        final Span span = this.tracer.buildSpan(description).start();
-        span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
-        this.tracer.scopeManager().activate(span, false);
-        updateSpanMappings(span);
-        return span;
+        if(tracer.activeSpan().getBaggageItem("sampled") != null && tracer.activeSpan().getBaggageItem("sampled").equals("true")) {
+            final Span span = this.tracer.buildSpan(description).start();
+            span.setBaggageItem("thread-id", Long.toString(Thread.currentThread().getId()));
+            this.tracer.scopeManager().activate(span, false);
+            updateSpanMappings(span);
+            return span;
+        }
+        return new NoopSpanImpl();
     }
 
     /**
@@ -574,10 +602,13 @@ public abstract class AbstractOpenTracingEngine implements TracingEngine {
      * @param traceId The traceId to lookup in {@code spanMappings}
      */
     void cacheObject(final Object object, final Span span, final String traceId) {
-        if (spanIdMappings.getIfPresent(traceId) != null && !spanIdMappings.getIfPresent(traceId).peek().equals(span)) {
-            spanIdMappings.getIfPresent(traceId).push(span);
+        if(span.getBaggageItem("sampled") != null && span.getBaggageItem("sampled").equals("true")) {
+            LinkedList<Span> spans = spanIdMappings.getIfPresent(traceId);
+            if (spans != null && spans.peek() != null && !spans.peek().equals(span)) {
+                spanIdMappings.getIfPresent(traceId).push(span);
+            }
+            responseMappings.put(object, span);
         }
-        responseMappings.put(object, span);
     }
 
 
